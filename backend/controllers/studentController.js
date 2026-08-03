@@ -1,16 +1,36 @@
 const Student = require("../models/Student");
 
+// ==========================
+// CREATE STUDENT
+// ==========================
 const createStudent = async (req, res) => {
   try {
-    const count = await Student.countDocuments();
+    // Find the highest existing student code
+    const students = await Student.find({}, { studentCode: 1 });
 
-    const studentCode = `STU-${String(count + 1).padStart(4, "0")}`;
+    let maxNumber = 0;
 
-    // Calculate age from DOB
+    students.forEach((student) => {
+      if (student.studentCode) {
+        const num = parseInt(
+          student.studentCode.replace("STU-", ""),
+          10
+        );
+
+        if (!isNaN(num) && num > maxNumber) {
+          maxNumber = num;
+        }
+      }
+    });
+
+    const studentCode = `STU-${String(maxNumber + 1).padStart(4, "0")}`;
+
+    // Calculate age
     let age = 0;
 
     if (req.body.dateOfBirth) {
       const dob = new Date(req.body.dateOfBirth);
+
       age = new Date().getFullYear() - dob.getFullYear();
     }
 
@@ -27,7 +47,7 @@ const createStudent = async (req, res) => {
 
       learningLevel: req.body.learningLevel,
 
-      facpScore: req.body.facpBaseline || 0,
+      facpScore: Number(req.body.facpBaseline || 0),
 
       guardianName: req.body.guardianName,
 
@@ -44,49 +64,68 @@ const createStudent = async (req, res) => {
 
     res.status(201).json(savedStudent);
   } catch (err) {
-    console.log(err);
+    console.error(err);
 
     res.status(500).json({
+      success: false,
       message: err.message,
     });
   }
 };
 
+// ==========================
+// GET ALL STUDENTS
+// ==========================
 const getStudents = async (req, res) => {
   try {
-    const students = await Student.find();
+    const students = await Student.find().sort({ createdAt: -1 });
 
-    res.json(students);
+    res.status(200).json(students);
   } catch (err) {
+    console.error(err);
+
     res.status(500).json({
+      success: false,
       message: err.message,
     });
   }
 };
 
+// ==========================
+// GET SINGLE STUDENT
+// ==========================
 const getStudent = async (req, res) => {
   try {
     const student = await Student.findById(req.params.id);
 
-    if (!student)
+    if (!student) {
       return res.status(404).json({
+        success: false,
         message: "Student not found",
       });
+    }
 
-    res.json(student);
+    res.status(200).json(student);
   } catch (err) {
+    console.error(err);
+
     res.status(500).json({
+      success: false,
       message: err.message,
     });
   }
 };
 
+// ==========================
+// UPDATE STUDENT
+// ==========================
 const updateStudent = async (req, res) => {
   try {
-    let age;
+    let age = 0;
 
     if (req.body.dateOfBirth) {
       const dob = new Date(req.body.dateOfBirth);
+
       age = new Date().getFullYear() - dob.getFullYear();
     }
 
@@ -96,7 +135,7 @@ const updateStudent = async (req, res) => {
       gender: req.body.gender,
       disabilityLevel: req.body.disabilityLevel,
       learningLevel: req.body.learningLevel,
-      facpScore: req.body.facpBaseline,
+      facpScore: Number(req.body.facpBaseline || 0),
       guardianName: req.body.guardianName,
       guardianPhone: req.body.guardianPhone,
       address: req.body.address,
@@ -106,7 +145,7 @@ const updateStudent = async (req, res) => {
       updateData.photo = `/uploads/${req.file.filename}`;
     }
 
-    const student = await Student.findByIdAndUpdate(
+    const updatedStudent = await Student.findByIdAndUpdate(
       req.params.id,
       updateData,
       {
@@ -115,23 +154,47 @@ const updateStudent = async (req, res) => {
       }
     );
 
-    res.json(student);
+    if (!updatedStudent) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    res.status(200).json(updatedStudent);
   } catch (err) {
+    console.error(err);
+
     res.status(500).json({
+      success: false,
       message: err.message,
     });
   }
 };
 
+// ==========================
+// DELETE STUDENT
+// ==========================
 const deleteStudent = async (req, res) => {
   try {
-    await Student.findByIdAndDelete(req.params.id);
+    const deletedStudent = await Student.findByIdAndDelete(req.params.id);
 
-    res.json({
+    if (!deletedStudent) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
       message: "Student deleted successfully",
     });
   } catch (err) {
+    console.error(err);
+
     res.status(500).json({
+      success: false,
       message: err.message,
     });
   }
