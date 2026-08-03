@@ -234,13 +234,13 @@ async function confirmDelete(id:string){
                     <td className="px-5 py-4" style={{ fontFamily: P, fontWeight: 600, fontSize: 13, color: "#0D2137" }}>{s.facpScore}</td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
-                        <Link to={`/students/${s.id}`}>
+                        <Link to={`/students/${s._id}`}>
                           <button className="flex items-center gap-1 px-3 py-1.5 rounded-lg" style={{ background: "#E3F2FD", border: "none", cursor: "pointer", fontFamily: P, fontSize: 12, fontWeight: 500, color: "#1565C0" }}>
                             <span className="material-icons-round" style={{ fontSize: 15 }}>visibility</span>
                             View
                           </button>
                         </Link>
-                        <Link to="/students/add">
+                        <Link to={`/students/edit/${s._id}`}>
                           <button className="flex items-center gap-1 px-3 py-1.5 rounded-lg" style={{ background: "#E8F5E9", border: "none", cursor: "pointer", fontFamily: P, fontSize: 12, fontWeight: 500, color: "#27ae60" }}>
                             <span className="material-icons-round" style={{ fontSize: 15 }}>edit</span>
                             Edit

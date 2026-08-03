@@ -6,6 +6,7 @@ import DashboardPage from "./pages/DashboardPage";
 import StudentsPage from "./pages/StudentsPage";
 import AddStudentPage from "./pages/AddStudentPage";
 import StudentProfilePage from "./pages/StudentProfilePage";
+import EditStudentPage from "./pages/EditStudentPage";
 import ActivityLibraryPage from "./pages/ActivityLibraryPage";
 import LearningScreenPage from "./pages/LearningScreenPage";
 import TeacherObservationPage from "./pages/TeacherObservationPage";
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
   { path: "/students",           Component: StudentsPage },
   { path: "/students/add",       Component: AddStudentPage },
   { path: "/students/:id",       Component: StudentProfilePage },
+  { path: "/students/edit/:id", Component: EditStudentPage },
   { path: "/observation/:studentId", Component: TeacherObservationPage },
 
   // ── Activities & learning ────────────────────────────────────
