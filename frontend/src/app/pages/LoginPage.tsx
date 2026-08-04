@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { Eye, EyeOff } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import axios from "axios";
 
 /* ─── Flat SVG illustration ─── */
 function TeacherIllustration() {
@@ -214,25 +215,63 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
   const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
+  const [serverError, setServerError] = useState("");
 
   function validate() {
-    const e: { username?: string; password?: string } = {};
-    if (!username.trim()) e.username = "Username is required.";
-    if (!password) e.password = "Password is required.";
-    else if (password.length < 6) e.password = "Password must be at least 6 characters.";
-    return e;
+  const e: { username?: string; password?: string } = {};
+
+  if (!username.trim()) {
+    e.username = "Email is required.";
   }
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
-    const errs = validate();
-    setErrors(errs);
-    if (Object.keys(errs).length) return;
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 1800));
-    setLoading(false);
-    setSuccess(true);
+  if (!password) {
+    e.password = "Password is required.";
   }
+
+  return e;
+}
+  async function handleLogin(e: React.FormEvent) {
+  e.preventDefault();
+
+  const errs = validate();
+  setErrors(errs);
+
+  if (Object.keys(errs).length) return;
+
+  try {
+    setLoading(true);
+    setServerError("");
+
+    const res = await axios.post(
+      "http://localhost:5000/api/auth/login",
+      {
+        email: username,
+        password,
+      }
+    );
+
+    localStorage.setItem("token", res.data.token);
+    localStorage.setItem("user", JSON.stringify(res.data.user));
+
+    setSuccess(true);
+
+    setTimeout(() => {
+      if (res.data.user.role === "admin") {
+        navigate("/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
+    }, 1200);
+
+  } catch (err: any) {
+    setServerError(
+      err.response?.data?.message || "Invalid email or password"
+    );
+  } finally {
+    setLoading(false);
+  }
+}
 
   return (
     <div className="w-full min-h-screen flex" style={{ fontFamily: "Poppins, sans-serif", background: "#EBF5FB" }}>
@@ -417,13 +456,28 @@ export default function LoginPage() {
 
                 {/* Form */}
                 <form onSubmit={handleLogin} noValidate className="flex flex-col gap-5">
+                  {serverError && (
+                  <div
+                    style={{
+                      background: "#FEE2E2",
+                      color: "#B91C1C",
+                      padding: "12px",
+                      borderRadius: "12px",
+                      fontSize: "14px",
+                      marginBottom: "10px",
+                      fontFamily: "Poppins, sans-serif",
+                    }}
+                  >
+                    {serverError}
+                  </div>
+                )}
                   <InputField
                     id="username"
-                    label="Username"
+                    label="Email"
                     type="text"
                     value={username}
                     onChange={setUsername}
-                    placeholder="Enter your username"
+                    placeholder="Enter your Email"
                     icon="person"
                     error={errors.username}
                   />

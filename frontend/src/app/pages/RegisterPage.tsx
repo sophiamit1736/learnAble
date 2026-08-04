@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { Link, useNavigate } from "react-router";
+import API from "../api/authApi";
+
 
 const P = "Poppins, sans-serif";
 
@@ -201,12 +203,46 @@ export default function RegisterPage() {
   const [deptFocused, setDeptFocused] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setLoading(false);
-    navigate("/dashboard");
+  e.preventDefault();
+
+  if (
+    !fullName ||
+    !email ||
+    !employeeId ||
+    !department ||
+    !password ||
+    !confirmPassword
+  ) {
+    alert("Please fill all fields.");
+    return;
   }
+
+  if (password !== confirmPassword) {
+    alert("Passwords do not match.");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const res = await API.post("/register", {
+      name: fullName,
+      email,
+      employeeId,
+      department,
+      password,
+      role: "teacher",
+    });
+
+    alert(res.data.message);
+
+    navigate("/login");
+  } catch (err: any) {
+    alert(err.response?.data?.message || "Registration failed");
+  } finally {
+    setLoading(false);
+  }
+}
 
   const eyeButton = (show: boolean, toggle: () => void) => (
     <button
@@ -370,177 +406,287 @@ export default function RegisterPage() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-              <FormField
-                id="fullName"
-                label="Full Name"
-                type="text"
-                value={fullName}
-                onChange={setFullName}
-                placeholder="Enter your full name"
-                icon="person"
-              />
 
-              <FormField
-                id="email"
-                label="Email Address"
-                type="email"
-                value={email}
-                onChange={setEmail}
-                placeholder="you@institution.edu"
-                icon="email"
-              />
+  <FormField
+    id="fullName"
+    label="Full Name"
+    type="text"
+    value={fullName}
+    onChange={setFullName}
+    placeholder="Enter your full name"
+    icon="person"
+  />
 
-              <FormField
-                id="employeeId"
-                label="Employee ID"
-                type="text"
-                value={employeeId}
-                onChange={setEmployeeId}
-                placeholder="EMP-XXXXX"
-                icon="badge"
-              />
+  <FormField
+    id="email"
+    label="Email Address"
+    type="email"
+    value={email}
+    onChange={setEmail}
+    placeholder="you@institution.edu"
+    icon="email"
+  />
 
-              {/* Department select */}
-              <div className="flex flex-col gap-1.5">
-                <label
-                  htmlFor="department"
-                  style={{ fontFamily: P, fontWeight: 500, fontSize: 13, color: "#0D2137" }}
-                >
-                  Department
-                </label>
-                <div
-                  className="flex items-center rounded-2xl transition-all duration-200 overflow-hidden"
-                  style={{
-                    border: `2px solid ${deptFocused ? "#1565C0" : "rgba(21,101,192,0.18)"}`,
-                    background: deptFocused ? "#f0f7ff" : "#F8FAFF",
-                    boxShadow: deptFocused ? "0 0 0 4px rgba(21,101,192,0.10)" : "none",
-                  }}
-                >
-                  <span
-                    className="material-icons-round pl-4 pr-2"
-                    style={{ fontSize: 20, color: deptFocused ? "#1565C0" : "#90a4b8", flexShrink: 0 }}
-                  >
-                    work
-                  </span>
-                  <select
-                    id="department"
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    onFocus={() => setDeptFocused(true)}
-                    onBlur={() => setDeptFocused(false)}
-                    className="flex-1 bg-transparent outline-none py-3.5 pr-3"
-                    style={{ fontFamily: P, fontSize: 14, fontWeight: 400, color: department ? "#0D2137" : "#90a4b8", border: "none", cursor: "pointer" }}
-                  >
-                    <option value="" disabled>Select department</option>
-                    <option value="special-education">Special Education</option>
-                    <option value="primary">Primary</option>
-                    <option value="secondary">Secondary</option>
-                    <option value="support-staff">Support Staff</option>
-                  </select>
-                </div>
-              </div>
+  <FormField
+    id="employeeId"
+    label="Employee ID"
+    type="text"
+    value={employeeId}
+    onChange={setEmployeeId}
+    placeholder="EMP-001"
+    icon="badge"
+  />
 
-              <FormField
-                id="password"
-                label="Password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={setPassword}
-                placeholder="Create a password"
-                icon="lock"
-                rightEl={eyeButton(showPassword, () => setShowPassword((v) => !v))}
-              />
+  {/* Department */}
 
-              <FormField
-                id="confirmPassword"
-                label="Confirm Password"
-                type={showConfirmPassword ? "text" : "password"}
-                value={confirmPassword}
-                onChange={setConfirmPassword}
-                placeholder="Re-enter your password"
-                icon="lock"
-                rightEl={eyeButton(showConfirmPassword, () => setShowConfirmPassword((v) => !v))}
-              />
+  <div className="flex flex-col gap-1.5">
 
-              {/* Terms checkbox */}
-              <label className="flex items-start gap-3 cursor-pointer select-none mt-1">
-                <div
-                  onClick={() => setAgreed((v) => !v)}
-                  className="flex items-center justify-center rounded-lg transition-all duration-200 mt-0.5"
-                  style={{
-                    width: 22,
-                    height: 22,
-                    flexShrink: 0,
-                    border: `2px solid ${agreed ? "#1565C0" : "rgba(21,101,192,0.30)"}`,
-                    background: agreed ? "#1565C0" : "#fff",
-                    cursor: "pointer",
-                  }}
-                >
-                  {agreed && (
-                    <span className="material-icons-round text-white" style={{ fontSize: 15 }}>check</span>
-                  )}
-                </div>
-                <span style={{ fontFamily: P, fontWeight: 400, fontSize: 13, color: "#4A6580", lineHeight: 1.5 }}>
-                  I agree to the{" "}
-                  <a href="#" style={{ color: "#1565C0", fontWeight: 500, textDecoration: "none" }}>Terms of Use</a>
-                  {" "}and{" "}
-                  <a href="#" style={{ color: "#1565C0", fontWeight: 500, textDecoration: "none" }}>Privacy Policy</a>
-                </span>
-              </label>
+    <label
+      htmlFor="department"
+      style={{
+        fontFamily: P,
+        fontWeight: 500,
+        fontSize: 13,
+        color: "#0D2137",
+      }}
+    >
+      Department
+    </label>
 
-              {/* Submit */}
+    <div
+      className="flex items-center rounded-2xl transition-all duration-200 overflow-hidden"
+      style={{
+        border: `2px solid ${
+          deptFocused
+            ? "#1565C0"
+            : "rgba(21,101,192,0.18)"
+        }`,
+        background: deptFocused
+          ? "#f0f7ff"
+          : "#F8FAFF",
+        boxShadow: deptFocused
+          ? "0 0 0 4px rgba(21,101,192,0.10)"
+          : "none",
+      }}
+    >
+
+      <span
+        className="material-icons-round pl-4 pr-2"
+        style={{
+          fontSize: 20,
+          color: deptFocused
+            ? "#1565C0"
+            : "#90a4b8",
+        }}
+      >
+        work
+      </span>
+
+      <select
+        id="department"
+        value={department}
+        onChange={(e) => setDepartment(e.target.value)}
+        onFocus={() => setDeptFocused(true)}
+        onBlur={() => setDeptFocused(false)}
+        className="flex-1 bg-transparent outline-none py-3.5 pr-3"
+        style={{
+          fontFamily: P,
+          fontSize: 14,
+          border: "none",
+        }}
+      >
+        <option value="">Select Department</option>
+
+        <option value="Special Education">
+          Special Education
+        </option>
+
+        <option value="Primary">
+          Primary
+        </option>
+
+        <option value="Secondary">
+          Secondary
+        </option>
+
+        <option value="Support Staff">
+          Support Staff
+        </option>
+
+      </select>
+
+    </div>
+
+  </div>
+
+  <FormField
+    id="password"
+    label="Password"
+    type={showPassword ? "text" : "password"}
+    value={password}
+    onChange={setPassword}
+    placeholder="Enter password"
+    icon="lock"
+    rightEl={eyeButton(showPassword, () =>
+      setShowPassword(!showPassword)
+    )}
+  />
+
+  <FormField
+    id="confirmPassword"
+    label="Confirm Password"
+    type={showConfirmPassword ? "text" : "password"}
+    value={confirmPassword}
+    onChange={setConfirmPassword}
+    placeholder="Confirm password"
+    icon="lock"
+    rightEl={eyeButton(
+      showConfirmPassword,
+      () =>
+        setShowConfirmPassword(
+          !showConfirmPassword
+        )
+    )}
+  />
+
+  <label
+    className="flex items-start gap-3 cursor-pointer mt-2"
+  >
+
+    <input
+      type="checkbox"
+      checked={agreed}
+      onChange={(e) =>
+        setAgreed(e.target.checked)
+      }
+    />
+
+    <span
+      style={{
+        fontFamily: P,
+        fontSize: 13,
+        color: "#4A6580",
+      }}
+    >
+      I agree to the Terms and Conditions
+    </span>
+
+  </label>
+                {/* Submit Button */}
               <motion.button
                 type="submit"
                 disabled={loading || !agreed}
-                whileTap={{ scale: loading ? 1 : 0.97 }}
-                className="w-full flex items-center justify-center gap-3 rounded-2xl py-4 mt-2 transition-all duration-200"
+                whileTap={{ scale: loading ? 1 : 0.98 }}
+                className="w-full flex items-center justify-center gap-3 rounded-2xl py-4 mt-2"
                 style={{
                   background:
                     loading || !agreed
                       ? "linear-gradient(135deg,#5c8fd6,#4aaa78)"
-                      : "linear-gradient(135deg,#1565C0 0%,#0d9e6e 100%)",
+                      : "linear-gradient(135deg,#1565C0,#27AE60)",
+                  border: "none",
                   color: "#fff",
                   fontFamily: P,
                   fontWeight: 600,
                   fontSize: 15,
-                  border: "none",
-                  cursor: loading || !agreed ? "not-allowed" : "pointer",
-                  boxShadow: loading || !agreed ? "none" : "0 6px 24px rgba(21,101,192,0.32)",
-                  opacity: !agreed && !loading ? 0.7 : 1,
+                  cursor:
+                    loading || !agreed
+                      ? "not-allowed"
+                      : "pointer",
+                  opacity:
+                    loading || !agreed ? 0.75 : 1,
+                  boxShadow:
+                    loading
+                      ? "none"
+                      : "0 6px 24px rgba(21,101,192,.25)",
                 }}
               >
                 {loading ? (
                   <>
-                    <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.35)" strokeWidth="3" />
-                      <path d="M12 2a10 10 0 0 1 10 10" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      className="animate-spin"
+                    >
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="rgba(255,255,255,.3)"
+                        strokeWidth="3"
+                      />
+
+                      <path
+                        d="M12 2a10 10 0 0 1 10 10"
+                        stroke="#fff"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                      />
                     </svg>
-                    Creating account…
+
+                    Creating Account...
                   </>
                 ) : (
                   <>
-                    <span className="material-icons-round" style={{ fontSize: 20 }}>person_add</span>
+                    <span
+                      className="material-icons-round"
+                      style={{ fontSize: 20 }}
+                    >
+                      person_add
+                    </span>
+
                     Create Account
                   </>
                 )}
               </motion.button>
+
             </form>
 
-            {/* Footer link */}
-            <p className="text-center mt-6" style={{ fontFamily: P, fontWeight: 400, fontSize: 13, color: "#4A6580" }}>
+            {/* Login Link */}
+
+            <p
+              className="text-center mt-6"
+              style={{
+                fontFamily: P,
+                fontSize: 13,
+                color: "#4A6580",
+              }}
+            >
               Already have an account?{" "}
-              <Link to="/login" style={{ color: "#1565C0", fontWeight: 600, textDecoration: "none" }}>
+
+              <Link
+                to="/login"
+                style={{
+                  color: "#1565C0",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                }}
+              >
                 Sign In →
               </Link>
+
             </p>
+
           </div>
 
-          {/* Copyright */}
-          <p className="text-center mt-5" style={{ fontFamily: P, fontWeight: 400, fontSize: 12, color: "#4A6580" }}>
-            © 2025 GIID Tambaram. All rights reserved.
+          {/* Footer */}
+
+          <p
+            className="text-center mt-5"
+            style={{
+              fontFamily: P,
+              fontSize: 12,
+              color: "#607D8B",
+            }}
+          >
+            © 2026 GIID Tambaram. All rights reserved.
           </p>
+
         </motion.div>
+
       </div>
+
     </div>
   );
 }
