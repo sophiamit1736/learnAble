@@ -523,8 +523,9 @@ function ShapeMatchGame({ onScore }: { onScore: (n: number) => void }) {
               key={id}
               animate={isPlaced ? { opacity: 0.25, scale: 0.9 } : { opacity: 1, scale: 1 }}
               draggable={!isPlaced}
-              onDragStart={(e: React.DragEvent<HTMLDivElement>) => {
-                e.dataTransfer.setData("shapeId", id);
+              onDragStart={(e: any) => {
+                const dragEvent = e as React.DragEvent<HTMLDivElement>;
+                dragEvent.dataTransfer.setData("shapeId", id);
                 setDragging(id);
               }}
               onDragEnd={() => setDragging(null)}
@@ -651,9 +652,8 @@ function SortingGame({ onScore }: { onScore: (n: number) => void }) {
         {SORT_ITEMS.map((item) => {
           const isPlaced = sortedIds.has(item.id);
           return (
-            <motion.div
+            <div
               key={item.id}
-              animate={isPlaced ? { opacity: 0.2, scale: 0.9 } : { opacity: 1, scale: 1 }}
               draggable={!isPlaced}
               onDragStart={(e: React.DragEvent<HTMLDivElement>) => e.dataTransfer.setData("itemId", item.id)}
               style={{
@@ -666,10 +666,13 @@ function SortingGame({ onScore }: { onScore: (n: number) => void }) {
                 border: "2px solid #B0BEC5",
                 cursor: isPlaced ? "default" : "grab",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                opacity: isPlaced ? 0.2 : 1,
+                transform: isPlaced ? "scale(0.9)" : "scale(1)",
+                transition: "opacity 0.2s, transform 0.2s",
               }}
             >
               {item.label}
-            </motion.div>
+            </div>
           );
         })}
       </div>
@@ -1097,6 +1100,12 @@ function GameView({
 export default function LearningScreenPage() {
   const { activityId = "shape-matching" } = useParams<{ activityId: string }>();
   const navigate = useNavigate();
+  const activityName =
+  activityId
+    ?.replaceAll("-", " ")
+    .replace(/\b\w/g, c => c.toUpperCase());
+
+<h2>{activityName}</h2>
 
   const config = REGISTRY[activityId] ?? REGISTRY["shape-matching"];
   const TOTAL_TIME = 120;

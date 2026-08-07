@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, Navigate } from "react-router";
 import { motion } from "motion/react";
 import { Sidebar, TopBar } from "./DashboardPage";
 import API from "../api/studentApi";
@@ -99,6 +99,12 @@ function Field({
 }
 
 export default function AddStudentPage() {
+
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  if (user.role !== "admin")
+  {
+    return <Navigate to="/dashboard" replace />;
+  }
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
 

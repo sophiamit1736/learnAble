@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend
@@ -10,42 +10,149 @@ const P = "Poppins, sans-serif";
 
 /* ─── Shared sidebar nav ─── */
 export function Sidebar({ active }: { active: string }) {
+
+  const navigate = useNavigate();
+
+  const user = JSON.parse(
+    localStorage.getItem("user") || "{}"
+  );
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
   const nav = [
-    { label: "Dashboard",  icon: "dashboard",            to: "/dashboard" },
-    { label: "Students",   icon: "people",               to: "/students" },
-    { label: "Activities", icon: "extension",            to: "/activities" },
-    { label: "Analytics",  icon: "bar_chart",            to: "/analytics" },
-    { label: "Reports",    icon: "description",          to: "/reports" },
-    { label: "AI Generator", icon: "auto_awesome",      to: "/ai-generator" },
-    { label: "Admin",      icon: "admin_panel_settings", to: "/admin" },
-    { label: "Settings",   icon: "settings",             to: "/settings" },
+    {
+      label: "Dashboard",
+      icon: "dashboard",
+      to: "/dashboard",
+    },
+    {
+      label: "Students",
+      icon: "people",
+      to: "/students",
+    },
+    {
+      label: "Activities",
+      icon: "extension",
+      to: "/activities",
+    },
+    {
+      label: "Analytics",
+      icon: "bar_chart",
+      to: "/analytics",
+    },
+    {
+      label: "Reports",
+      icon: "description",
+      to: "/reports",
+    },
+    {
+      label: "AI Generator",
+      icon: "auto_awesome",
+      to: "/ai-generator",
+    },
+    ...(user.role === "admin"
+      ? [
+          {
+            label: "Admin",
+            icon: "admin_panel_settings",
+            to: "/admin",
+          },
+        ]
+      : []),
+    {
+      label: "Settings",
+      icon: "settings",
+      to: "/settings",
+    },
   ];
+
   return (
     <aside
       className="flex flex-col h-screen sticky top-0"
-      style={{ width: 240, background: "#0D2137", minHeight: "100vh", flexShrink: 0 }}
+      style={{
+        width: 240,
+        background: "#0D2137",
+        minHeight: "100vh",
+        flexShrink: 0,
+      }}
     >
-      {/* Logo */}
       <Link to="/" style={{ textDecoration: "none" }}>
-        <div className="flex items-center gap-3 px-6 py-5 border-b" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+        <div
+          className="flex items-center gap-3 px-6 py-5 border-b"
+          style={{
+            borderColor: "rgba(255,255,255,0.08)",
+          }}
+        >
           <div
             className="flex items-center justify-center rounded-xl"
-            style={{ width: 40, height: 40, background: "linear-gradient(135deg,#1565C0,#27ae60)" }}
+            style={{
+              width: 40,
+              height: 40,
+              background:
+                "linear-gradient(135deg,#1565C0,#27ae60)",
+            }}
           >
-            <span style={{ fontFamily: P, fontWeight: 800, fontSize: 16, color: "#fff" }}>G</span>
+            <span
+              style={{
+                fontFamily: P,
+                fontWeight: 800,
+                fontSize: 16,
+                color: "#fff",
+              }}
+            >
+              G
+            </span>
           </div>
+
           <div>
-            <div style={{ fontFamily: P, fontWeight: 700, fontSize: 13, color: "#fff" }}>GIID</div>
-            <div style={{ fontFamily: P, fontWeight: 400, fontSize: 10, color: "rgba(255,255,255,0.5)", letterSpacing: "0.06em" }}>TAMBARAM</div>
+            <div
+              style={{
+                fontFamily: P,
+                fontWeight: 700,
+                fontSize: 13,
+                color: "#fff",
+              }}
+            >
+              GIID
+            </div>
+
+            <div
+              style={{
+                fontFamily: P,
+                fontWeight: 400,
+                fontSize: 10,
+                color: "rgba(255,255,255,0.5)",
+              }}
+            >
+              TAMBARAM
+            </div>
           </div>
         </div>
       </Link>
 
-      {/* Nav items */}
       <nav className="flex flex-col gap-1 px-3 py-4 flex-1">
-        <div style={{ fontFamily: P, fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", paddingLeft: 12, marginBottom: 6 }}>MAIN MENU</div>
+
+        <div
+          style={{
+            fontFamily: P,
+            fontSize: 10,
+            fontWeight: 600,
+            color: "rgba(255,255,255,0.35)",
+            paddingLeft: 12,
+            marginBottom: 6,
+          }}
+        >
+          MAIN MENU
+        </div>
+
         {nav.map(({ label, icon, to }) => {
+
           const isActive = active === label;
+
           return (
             <Link
               key={label}
@@ -53,75 +160,235 @@ export function Sidebar({ active }: { active: string }) {
               style={{ textDecoration: "none" }}
             >
               <div
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
                 style={{
-                  background: isActive ? "linear-gradient(135deg,rgba(21,101,192,0.6),rgba(13,158,110,0.4))" : "transparent",
-                  border: isActive ? "1px solid rgba(255,255,255,0.12)" : "1px solid transparent",
+                  background: isActive
+                    ? "linear-gradient(135deg,rgba(21,101,192,0.6),rgba(13,158,110,0.4))"
+                    : "transparent",
                 }}
               >
-                <span className="material-icons-round" style={{ fontSize: 20, color: isActive ? "#fff" : "rgba(255,255,255,0.45)" }}>{icon}</span>
-                <span style={{ fontFamily: P, fontWeight: isActive ? 600 : 400, fontSize: 14, color: isActive ? "#fff" : "rgba(255,255,255,0.55)" }}>{label}</span>
-                {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: "#2ECC71" }} />}
+                <span
+                  className="material-icons-round"
+                  style={{
+                    color: isActive
+                      ? "#fff"
+                      : "rgba(255,255,255,0.5)",
+                  }}
+                >
+                  {icon}
+                </span>
+
+                <span
+                  style={{
+                    color: isActive
+                      ? "#fff"
+                      : "rgba(255,255,255,0.6)",
+                    fontFamily: P,
+                  }}
+                >
+                  {label}
+                </span>
               </div>
             </Link>
           );
         })}
       </nav>
 
-      {/* Logout */}
-      <div className="px-3 pb-6 border-t pt-4" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
-        <Link to="/login" style={{ textDecoration: "none" }}>
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 hover:bg-red-900/20">
-            <span className="material-icons-round" style={{ fontSize: 20, color: "rgba(255,100,100,0.7)" }}>logout</span>
-            <span style={{ fontFamily: P, fontWeight: 400, fontSize: 14, color: "rgba(255,100,100,0.7)" }}>Logout</span>
-          </div>
-        </Link>
+      <div
+        className="px-3 pb-6 border-t pt-4"
+        style={{
+          borderColor: "rgba(255,255,255,0.08)",
+        }}
+      >
+        <button
+          onClick={logout}
+          className="flex items-center gap-3 px-3 py-2 rounded-xl w-full"
+          style={{
+            background: "transparent",
+            color: "#ff7b7b",
+            border: "none",
+            cursor: "pointer",
+            fontFamily: P,
+          }}
+        >
+          <span className="material-icons-round">
+            logout
+          </span>
+
+          Logout
+        </button>
       </div>
     </aside>
   );
 }
 
 /* ─── Top bar ─── */
-export function TopBar({ title, subtitle }: { title: string; subtitle?: string }) {
+export function TopBar({
+  title,
+  subtitle,
+  user,
+}: {
+  title: string;
+  subtitle?: string;
+  user?: { name: string; role: string };
+}) {
   const [search, setSearch] = useState("");
+
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "GI";
+
   return (
     <header
       className="flex items-center gap-4 px-8 py-4 border-b"
-      style={{ background: "#fff", borderColor: "rgba(21,101,192,0.1)", position: "sticky", top: 0, zIndex: 10 }}
+      style={{
+        background: "#fff",
+        borderColor: "rgba(21,101,192,0.1)",
+        position: "sticky",
+        top: 0,
+        zIndex: 10,
+      }}
     >
+      {/* Title */}
       <div className="flex-1">
-        <h1 style={{ fontFamily: P, fontWeight: 700, fontSize: 20, color: "#0D2137", lineHeight: 1.2 }}>{title}</h1>
-        {subtitle && <p style={{ fontFamily: P, fontWeight: 400, fontSize: 13, color: "#4A6580" }}>{subtitle}</p>}
+        <h1
+          style={{
+            fontFamily: P,
+            fontWeight: 700,
+            fontSize: 20,
+            color: "#0D2137",
+          }}
+        >
+          {title}
+        </h1>
+
+        <p
+          style={{
+            fontFamily: P,
+            fontWeight: 400,
+            fontSize: 13,
+            color: "#4A6580",
+          }}
+        >
+          {subtitle}
+        </p>
       </div>
+
       {/* Search */}
       <div
         className="flex items-center gap-2 px-3 py-2 rounded-xl"
-        style={{ background: "#F0F6FF", border: "1.5px solid rgba(21,101,192,0.14)", width: 240 }}
+        style={{
+          background: "#F0F6FF",
+          border: "1.5px solid rgba(21,101,192,0.14)",
+          width: 240,
+        }}
       >
-        <span className="material-icons-round" style={{ fontSize: 18, color: "#90a4b8" }}>search</span>
+        <span
+          className="material-icons-round"
+          style={{ fontSize: 18, color: "#90a4b8" }}
+        >
+          search
+        </span>
+
         <input
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder="Search..."
           className="bg-transparent outline-none flex-1"
-          style={{ fontFamily: P, fontSize: 13, color: "#0D2137" }}
+          style={{
+            fontFamily: P,
+            fontSize: 13,
+            color: "#0D2137",
+          }}
         />
       </div>
+
       {/* Notification */}
-      <button className="relative flex items-center justify-center rounded-xl" style={{ width: 40, height: 40, background: "#F0F6FF", border: "1.5px solid rgba(21,101,192,0.14)", cursor: "pointer" }}>
-        <span className="material-icons-round" style={{ fontSize: 20, color: "#1565C0" }}>notifications</span>
-        <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: "#EF5350" }} />
+      <button
+        className="relative flex items-center justify-center rounded-xl"
+        style={{
+          width: 40,
+          height: 40,
+          background: "#F0F6FF",
+          border: "1.5px solid rgba(21,101,192,0.14)",
+          cursor: "pointer",
+        }}
+      >
+        <span
+          className="material-icons-round"
+          style={{
+            fontSize: 20,
+            color: "#1565C0",
+          }}
+        >
+          notifications
+        </span>
+
+        <span
+          className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
+          style={{ background: "#EF5350" }}
+        />
       </button>
-      {/* Profile */}
-      <div className="flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer" style={{ background: "#F0F6FF", border: "1.5px solid rgba(21,101,192,0.14)" }}>
-        <div className="flex items-center justify-center rounded-full" style={{ width: 32, height: 32, background: "linear-gradient(135deg,#1565C0,#27ae60)" }}>
-          <span style={{ fontFamily: P, fontWeight: 700, fontSize: 13, color: "#fff" }}>SR</span>
+
+      {/* Logged-in User */}
+      <div
+        className="flex items-center gap-2 px-3 py-2 rounded-xl"
+        style={{
+          background: "#F0F6FF",
+          border: "1.5px solid rgba(21,101,192,0.14)",
+        }}
+      >
+        <div
+          className="flex items-center justify-center rounded-full"
+          style={{
+            width: 36,
+            height: 36,
+            background:
+              "linear-gradient(135deg,#1565C0,#27ae60)",
+            color: "#fff",
+            fontWeight: 700,
+          }}
+        >
+          {initials}
         </div>
+
         <div>
-          <div style={{ fontFamily: P, fontWeight: 600, fontSize: 12, color: "#0D2137" }}>Ms. Sridevi R.</div>
-          <div style={{ fontFamily: P, fontWeight: 400, fontSize: 10, color: "#4A6580" }}>Special Educator</div>
+          <div
+            style={{
+              fontFamily: P,
+              fontWeight: 600,
+              fontSize: 13,
+              color: "#0D2137",
+            }}
+          >
+            {user?.name || "Teacher"}
+          </div>
+
+          <div
+            style={{
+              fontFamily: P,
+              fontSize: 11,
+              color: "#4A6580",
+            }}
+          >
+            {user?.role || "teacher"}
+          </div>
         </div>
-        <span className="material-icons-round" style={{ fontSize: 16, color: "#4A6580" }}>expand_more</span>
+
+        <span
+          className="material-icons-round"
+          style={{
+            fontSize: 18,
+            color: "#4A6580",
+          }}
+        >
+          expand_more
+        </span>
       </div>
     </header>
   );
@@ -192,12 +459,17 @@ const statusColor: Record<string, { bg: string; color: string }> = {
 };
 
 export default function DashboardPage() {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
   return (
     <div className="flex" style={{ minHeight: "100vh", background: "#F0F6FF" }}>
       <Sidebar active="Dashboard" />
       <div className="flex-1 flex flex-col min-w-0">
-        <TopBar title="Teacher Dashboard" subtitle="Welcome back, Ms. Sridevi — Monday, 28 July 2025" />
-
+        {/* <TopBar title="Dashboard" subtitle={`Welcome back, ${user.name || "User"}!`} /> */}
+        <TopBar
+            title="Teacher Dashboard"
+            subtitle={`Welcome back, ${user.name || "Teacher"}`}
+            user={user}
+          />
         <main className="flex-1 p-8 flex flex-col gap-6">
           {/* Stat cards */}
           <div className="grid grid-cols-4 gap-5">
@@ -303,7 +575,7 @@ export default function DashboardPage() {
                         <div style={{ fontFamily: P, fontWeight: 600, fontSize: 13, color: "#0D2137" }}>{u.title}</div>
                         <div style={{ fontFamily: P, fontWeight: 400, fontSize: 11, color: "#4A6580" }}>{u.students} students · {u.time}</div>
                       </div>
-                      <Link to="/learn/shape-matching">
+                      <Link to="/learning">
                         <span className="material-icons-round" style={{ fontSize: 18, color: u.color, cursor: "pointer" }}>play_circle</span>
                       </Link>
                     </div>

@@ -4,11 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Sidebar, TopBar } from "./DashboardPage";
 import API from "../api/studentApi";
 
-
 const P = "Poppins, sans-serif";
-
-
-
 const levelColor: Record<string, { bg: string; color: string }> = {
   Mild: { bg: "#E8F5E9", color: "#27ae60" },
   Moderate: { bg: "#FFF9C4", color: "#F9A825" },
@@ -32,7 +28,8 @@ export default function StudentsPage() {
   const [filter, setFilter] = useState("All");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [list,setList]=useState<any[]>([]);
-
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const isAdmin = user.role === "admin";
   const filtered = list.filter((s) => {
   const matchSearch = (s.name ?? "")
     .toLowerCase()
@@ -140,20 +137,54 @@ async function confirmDelete(id:string){
             <div className="ml-auto flex gap-3">
               <button
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
-                style={{ background: "#fff", border: "1.5px solid rgba(21,101,192,0.14)", fontFamily: P, fontSize: 13, color: "#4A6580", cursor: "pointer" }}
+                style={{
+                  background: "#fff",
+                  border: "1.5px solid rgba(21,101,192,0.14)",
+                  fontFamily: P,
+                  fontSize: 13,
+                  color: "#4A6580",
+                  cursor: "pointer"
+                }}
               >
-                <span className="material-icons-round" style={{ fontSize: 18 }}>download</span>
+                <span
+                  className="material-icons-round"
+                  style={{ fontSize: 18 }}
+                >
+                  download
+                </span>
+
                 Export
               </button>
-              <Link to="/students/add" style={{ textDecoration: "none" }}>
-                <button
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl"
-                  style={{ background: "linear-gradient(135deg,#1565C0,#27ae60)", border: "none", fontFamily: P, fontSize: 13, fontWeight: 600, color: "#fff", cursor: "pointer", boxShadow: "0 4px 16px rgba(21,101,192,0.28)" }}
-                >
-                  <span className="material-icons-round" style={{ fontSize: 18 }}>person_add</span>
-                  Add Student
-                </button>
-              </Link>
+
+              {isAdmin && (
+                <Link to="/students/add" style={{ textDecoration: "none" }}>
+                  <button
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl"
+                    style={{
+                      background:
+                        "linear-gradient(135deg,#1565C0,#27ae60)",
+                      border: "none",
+                      fontFamily: P,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: "#fff",
+                      cursor: "pointer",
+                      boxShadow:
+                        "0 4px 16px rgba(21,101,192,0.28)"
+                    }}
+                  >
+                    <span
+                      className="material-icons-round"
+                      style={{ fontSize: 18 }}
+                    >
+                      person_add
+                    </span>
+
+                    Add Student
+                  </button>
+                </Link>
+              )}
+
             </div>
           </div>
 
@@ -235,25 +266,69 @@ async function confirmDelete(id:string){
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
                         <Link to={`/students/${s._id}`}>
-                          <button className="flex items-center gap-1 px-3 py-1.5 rounded-lg" style={{ background: "#E3F2FD", border: "none", cursor: "pointer", fontFamily: P, fontSize: 12, fontWeight: 500, color: "#1565C0" }}>
-                            <span className="material-icons-round" style={{ fontSize: 15 }}>visibility</span>
+                          <button
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg"
+                            style={{
+                              background: "#E3F2FD",
+                              border: "none",
+                              cursor: "pointer",
+                              fontFamily: P,
+                              fontSize: 12,
+                              fontWeight: 500,
+                              color: "#1565C0"
+                            }}
+                          >
+                            <span className="material-icons-round">
+                              visibility
+                            </span>
+
                             View
                           </button>
                         </Link>
+
                         <Link to={`/students/edit/${s._id}`}>
-                          <button className="flex items-center gap-1 px-3 py-1.5 rounded-lg" style={{ background: "#E8F5E9", border: "none", cursor: "pointer", fontFamily: P, fontSize: 12, fontWeight: 500, color: "#27ae60" }}>
-                            <span className="material-icons-round" style={{ fontSize: 15 }}>edit</span>
+                          <button
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg"
+                            style={{
+                              background: "#E8F5E9",
+                              border: "none",
+                              cursor: "pointer",
+                              fontFamily: P,
+                              fontSize: 12,
+                              fontWeight: 500,
+                              color: "#27ae60"
+                            }}
+                          >
+                            <span className="material-icons-round">
+                              edit
+                            </span>
+
                             Edit
                           </button>
                         </Link>
-                        <button
-                          onClick={() => setDeleteId(s._id)}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg"
-                          style={{ background: "#FFEBEE", border: "none", cursor: "pointer", fontFamily: P, fontSize: 12, fontWeight: 500, color: "#EF5350" }}
-                        >
-                          <span className="material-icons-round" style={{ fontSize: 15 }}>delete</span>
-                          Delete
-                        </button>
+
+                        {isAdmin && (
+                          <button
+                            onClick={() => setDeleteId(s._id)}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg"
+                            style={{
+                              background: "#FFEBEE",
+                              border: "none",
+                              cursor: "pointer",
+                              fontFamily: P,
+                              fontSize: 12,
+                              fontWeight: 500,
+                              color: "#EF5350"
+                            }}
+                          >
+                            <span className="material-icons-round">
+                              delete
+                            </span>
+
+                            Delete
+                          </button>
+                        )}
+
                       </div>
                     </td>
                   </motion.tr>

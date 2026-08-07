@@ -201,6 +201,63 @@ const activities = [
     ),
   },
   {
+  id: "memory",
+  title: "Memory Matching",
+  desc: "Find matching pairs to strengthen memory, attention and concentration.",
+  difficulty: "Level 2",
+  time: "10–15 min",
+  category: "Memory",
+  color: "#7E57C2",
+  bg: "linear-gradient(135deg,#EDE7F6,#D1C4E9)",
+  iconBg: "#7E57C2",
+  icon: "psychology",
+  illustration: (
+    <svg
+      viewBox="0 0 120 90"
+      fill="none"
+      style={{ width: "100%", height: "100%" }}
+    >
+      <rect
+        x="12"
+        y="15"
+        width="42"
+        height="55"
+        rx="9"
+        fill="#9575CD"
+      />
+
+      <rect
+        x="66"
+        y="15"
+        width="42"
+        height="55"
+        rx="9"
+        fill="#7E57C2"
+      />
+
+      <text
+        x="33"
+        y="52"
+        textAnchor="middle"
+        fontSize="28"
+        fill="#fff"
+      >
+        ?
+      </text>
+
+      <text
+        x="87"
+        y="52"
+        textAnchor="middle"
+        fontSize="28"
+        fill="#fff"
+      >
+        ?
+      </text>
+    </svg>
+  ),
+},
+  {
     id: "size-sorting",
     title: "Size Sorting",
     desc: "Arrange objects from smallest to largest — developing visual discrimination.",
@@ -360,21 +417,44 @@ export default function ActivityLibraryPage() {
 
                   {/* Action buttons */}
                   <div className="flex gap-2 mt-auto pt-2">
-                    <button
+                    {/* <button
                       className="flex-1 py-2 rounded-xl text-sm font-medium"
                       style={{ background: "rgba(21,101,192,0.08)", border: "none", fontFamily: P, color: "#1565C0", cursor: "pointer" }}
                     >
                       Preview
-                    </button>
-                    <Link to={`/learn/${act.id}`} style={{ flex: 1, textDecoration: "none" }}>
-                      <button
-                        className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold"
-                        style={{ background: act.iconBg, border: "none", fontFamily: P, color: "#fff", cursor: "pointer", boxShadow: `0 4px 14px ${act.color}44` }}
+                    </button> */}
+                    <Link
+                    to={
+                      act.id === "picture-identification"
+                        ? "/learn/picture-identification"
+                        : act.id === "drag-drop"
+                        ? "/learn/drag-drop"
+                        : act.id === "memory"
+                        ? "/learn/memory"
+                        : `/learn/${act.id}`
+                    }
+                    style={{ textDecoration: "none", flex: 1 }}
+                  >
+                    <div
+                      className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold"
+                      style={{
+                        background: act.iconBg,
+                        fontFamily: P,
+                        color: "#fff",
+                        cursor: "pointer",
+                        boxShadow: `0 4px 14px ${act.color}44`,
+                      }}
+                    >
+                      <span
+                        className="material-icons-round"
+                        style={{ fontSize: 16 }}
                       >
-                        <span className="material-icons-round" style={{ fontSize: 16 }}>play_arrow</span>
-                        Play
-                      </button>
-                    </Link>
+                        play_arrow
+                      </span>
+
+                      Play
+                    </div>
+                  </Link>
                   </div>
                 </div>
               </motion.div>

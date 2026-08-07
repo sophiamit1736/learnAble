@@ -1,6 +1,7 @@
 const express = require("express");
-
 const router = express.Router();
+
+const upload = require("../middleware/upload");
 
 const {
   createStudent,
@@ -10,23 +11,61 @@ const {
   deleteStudent,
 } = require("../controllers/studentController");
 
-const upload=require("../middleware/upload");
+const {
+  verifyToken,
+  authorizeRoles,
+} = require("../middleware/authMiddleware");
 
+/* ==========================================
+   ADMIN ONLY - Add Student
+========================================== */
 router.post(
-    "/",
-    upload.single("photo"),
-    createStudent
+  "/",
+  verifyToken,
+  authorizeRoles("admin"),
+  upload.single("photo"),
+  createStudent
 );
 
-router.get("/", getStudents);
+/* ==========================================
+   ADMIN + TEACHER - View All Students
+========================================== */
+router.get(
+  "/",
+  verifyToken,
+  authorizeRoles("admin", "teacher"),
+  getStudents
+);
 
-router.get("/:id", getStudent);
+/* ==========================================
+   ADMIN + TEACHER - View Single Student
+========================================== */
+router.get(
+  "/:id",
+  verifyToken,
+  authorizeRoles("admin", "teacher"),
+  getStudent
+);
 
+/* ==========================================
+   ADMIN + TEACHER - Update Student
+========================================== */
 router.put(
-    "/:id",
-    upload.single("photo"),
-    updateStudent
+  "/:id",
+  verifyToken,
+  authorizeRoles("admin", "teacher"),
+  upload.single("photo"),
+  updateStudent
 );
-router.delete("/:id", deleteStudent);
+
+/* ==========================================
+   ADMIN ONLY - Delete Student
+========================================== */
+router.delete(
+  "/:id",
+  verifyToken,
+  authorizeRoles("admin"),
+  deleteStudent
+);
 
 module.exports = router;

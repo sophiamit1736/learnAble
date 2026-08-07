@@ -208,7 +208,6 @@ export default function RegisterPage() {
   if (
     !fullName ||
     !email ||
-    !employeeId ||
     !department ||
     !password ||
     !confirmPassword
@@ -427,7 +426,7 @@ export default function RegisterPage() {
     icon="email"
   />
 
-  <FormField
+  {/* <FormField
     id="employeeId"
     label="Employee ID"
     type="text"
@@ -435,7 +434,7 @@ export default function RegisterPage() {
     onChange={setEmployeeId}
     placeholder="EMP-001"
     icon="badge"
-  />
+  /> */}
 
   {/* Department */}
 

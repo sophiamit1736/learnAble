@@ -231,7 +231,7 @@ export default function LoginPage() {
 
   return e;
 }
-  async function handleLogin(e: React.FormEvent) {
+const handleLogin = async (e: React.FormEvent) => {
   e.preventDefault();
 
   const errs = validate();
@@ -241,37 +241,45 @@ export default function LoginPage() {
 
   try {
     setLoading(true);
-    setServerError("");
 
-    const res = await axios.post(
-      "http://localhost:5000/api/auth/login",
-      {
-        email: username,
+    const response = await fetch("http://localhost:5000/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: username, // your input field currently stores email
         password,
-      }
-    );
+      }),
+    });
 
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.message);
+      setLoading(false);
+      return;
+    }
+
+    // Save token
+    localStorage.setItem("token", data.token);
+
+    // Save user
+    localStorage.setItem("user", JSON.stringify(data.user));
 
     setSuccess(true);
 
     setTimeout(() => {
-      if (res.data.user.role === "admin") {
-        navigate("/dashboard");
-      } else {
-        navigate("/dashboard");
-      }
-    }, 1200);
+      window.location.href = "/dashboard";
+    }, 1500);
 
-  } catch (err: any) {
-    setServerError(
-      err.response?.data?.message || "Invalid email or password"
-    );
+  } catch (err) {
+    console.error(err);
+    alert("Server Error");
   } finally {
     setLoading(false);
   }
-}
+};
 
   return (
     <div className="w-full min-h-screen flex" style={{ fontFamily: "Poppins, sans-serif", background: "#EBF5FB" }}>
@@ -574,7 +582,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* SSO */}
-                <button
+                {/* <button
                   type="button"
                   className="w-full flex items-center justify-center gap-3 rounded-2xl py-3.5 transition-all duration-200"
                   style={{
@@ -585,7 +593,7 @@ export default function LoginPage() {
                 >
                   <span className="material-icons-round" style={{ fontSize: 20, color: "#1565C0" }}>corporate_fare</span>
                   Sign in with Institution SSO
-                </button>
+                </button> */}
 
                 <p className="text-center mt-4" style={{ fontFamily: "Poppins, sans-serif", fontWeight: 400, fontSize: 13, color: "#90a4b8" }}>
                   New to GIID?{" "}
