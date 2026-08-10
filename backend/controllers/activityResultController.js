@@ -187,8 +187,43 @@ const getAdaptiveSummary = async (req, res) => {
   }
 };
 
+
+const getAllResults = async (req, res) => {
+  try {
+    const results = await ActivityResult.find({}).sort({ createdAt: -1 }).limit(500).populate("student", "name studentCode").lean();
+    res.json(results);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+const getAnalytics = async (req, res) => {
+  try {
+    const results = await ActivityResult.find({}).sort({ createdAt: 1 }).populate("student", "name studentCode age learningLevel").lean();
+    const students = await Student.find({ status: "Active" }).select("name studentCode age learningLevel alpiScore").sort({ name: 1 }).lean();
+    const totalActivities = results.length;
+    const avgAccuracy = totalActivities ? Math.round(results.reduce((s, r) => s + Number(r.accuracy || 0), 0) / totalActivities) : 0;
+    const completedStudents = new Map();
+    results.forEach(r => { const id = String(r.student?._id || r.student || ""); if (!completedStudents.has(id)) completedStudents.set(id, []); completedStudents.get(id).push(r); });
+    const studentProgress = students.map(st => ({
+      id: st._id, name: st.name, studentCode: st.studentCode, age: st.age, learningLevel: st.learningLevel,
+      alpi: Number(st.alpiScore || 0), activities: (completedStudents.get(String(st._id)) || []).length,
+      accuracy: (() => { const a=completedStudents.get(String(st._id))||[]; return a.length ? Math.round(a.reduce((x,r)=>x+Number(r.accuracy||0),0)/a.length) : 0; })()
+    }));
+    const domainMap = {};
+    results.forEach(r => { const d=r.domain||"General"; domainMap[d] ||= {sum:0,count:0}; domainMap[d].sum += Number(r.accuracy||0); domainMap[d].count++; });
+    const domainMastery = Object.entries(domainMap).map(([domain,v]) => ({ domain, mastery: Math.round(v.sum/v.count), activities:v.count }));
+    const activityDistribution = {};
+    results.forEach(r => { const k=r.activityName||"Unknown"; activityDistribution[k]=(activityDistribution[k]||0)+1; });
+    const timelineMap = {};
+    results.forEach(r => { const d=new Date(r.completedAt||r.createdAt); const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`; timelineMap[key] ||= []; timelineMap[key].push(Number(r.accuracy||0)); });
+    const timeline = Object.entries(timelineMap).map(([month, vals])=>({ month, accuracy: Math.round(vals.reduce((a,b)=>a+b,0)/vals.length) }));
+    res.json({ totalStudents: students.length, totalActivities, avgAccuracy, studentProgress, domainMastery, activityDistribution: Object.entries(activityDistribution).map(([name,value])=>({name,value})), timeline });
+  } catch (err) { console.error("getAnalytics error:", err); res.status(500).json({message: err.message}); }
+};
+
 module.exports = {
   saveResult,
   getStudentResults,
   getAdaptiveSummary,
+  getAnalytics,
+  getAllResults,
 };

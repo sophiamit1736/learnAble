@@ -53,9 +53,9 @@ const router = createBrowserRouter([
   {
     path: "/students",
     element: (
-      <ProtectedRoute>
+      <RoleProtectedRoute roles={["admin", "teacher"]}>
         <StudentsPage />
-      </ProtectedRoute>
+      </RoleProtectedRoute>
     ),
   },
 
@@ -71,18 +71,18 @@ const router = createBrowserRouter([
   {
     path: "/students/edit/:id",
     element: (
-      <ProtectedRoute>
+      <RoleProtectedRoute roles={["admin", "teacher"]}>
         <EditStudentPage />
-      </ProtectedRoute>
+      </RoleProtectedRoute>
     ),
   },
 
   {
     path: "/students/:id",
     element: (
-      <ProtectedRoute>
+      <RoleProtectedRoute roles={["admin", "teacher"]}>
         <StudentProfilePage />
-      </ProtectedRoute>
+      </RoleProtectedRoute>
     ),
   },
 
@@ -137,17 +137,17 @@ const router = createBrowserRouter([
   {
     path: "/activities",
     element: (
-      <ProtectedRoute>
+      <RoleProtectedRoute roles={["admin", "teacher"]}>
         <ActivityLibraryPage />
-      </ProtectedRoute>
+      </RoleProtectedRoute>
     ),
   },
   {
   path: "/learning-modules",
   element: (
-    <ProtectedRoute>
+    <RoleProtectedRoute roles={["admin", "teacher"]}>
       <LearningModulesPage />
-    </ProtectedRoute>
+    </RoleProtectedRoute>
   ),
 },
   {
@@ -161,36 +161,36 @@ const router = createBrowserRouter([
   {
     path: "/analytics",
     element: (
-      <ProtectedRoute>
+      <RoleProtectedRoute roles={["admin", "teacher"]}>
         <ALPIDashboardPage />
-      </ProtectedRoute>
+      </RoleProtectedRoute>
     ),
   },
 
   {
     path: "/reports",
     element: (
-      <ProtectedRoute>
+      <RoleProtectedRoute roles={["admin", "teacher"]}>
         <ReportsPage />
-      </ProtectedRoute>
+      </RoleProtectedRoute>
     ),
   },
 
   {
     path: "/settings",
     element: (
-      <ProtectedRoute>
+      <RoleProtectedRoute roles={["admin", "teacher"]}>
         <SettingsPage />
-      </ProtectedRoute>
+      </RoleProtectedRoute>
     ),
   },
 
   {
     path: "/ai-generator",
     element: (
-      <ProtectedRoute>
+      <RoleProtectedRoute roles={["admin", "teacher"]}>
         <AIActivityGeneratorPage />
-      </ProtectedRoute>
+      </RoleProtectedRoute>
     ),
   },
 

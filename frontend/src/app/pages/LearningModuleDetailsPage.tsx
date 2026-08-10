@@ -354,6 +354,20 @@ function Visual({
 
   const interactiveStep = module.interactiveSteps?.[step];
 
+  if (module.moduleId === "academic-colours") {
+    const colour = ["#E53935", "#1565C0", "#FBC02D"][step % 3];
+    const label = ["RED", "BLUE", "YELLOW"][step % 3];
+    return (
+      <motion.div key={`colour-${step}`} initial={{opacity:0,scale:.94}} animate={{opacity:1,scale:1}} className="mx-auto rounded-[32px] flex flex-col items-center justify-center" style={{width:"min(100%, 360px)",height:250,background:"#F7FBFF",border:"4px solid #E3EDF7"}}>
+        <div style={{width:120,height:120,borderRadius:"50%",background:colour,boxShadow:"0 10px 24px rgba(13,33,55,.12)",position:"relative"}}>
+          <div style={{position:"absolute",width:34,height:18,borderRadius:"50%",background:"rgba(255,255,255,.25)",top:22,left:20,transform:"rotate(-25deg)"}} />
+        </div>
+        <div style={{marginTop:14,fontFamily:P,fontSize:24,fontWeight:900,color:colour,letterSpacing:2}}>{label}</div>
+        <div style={{fontFamily:P,fontSize:12,color:"#607D8B",marginTop:3}}>Look • Listen • Learn</div>
+      </motion.div>
+    );
+  }
+
   if (module.moduleId === "adl-brushing") {
     return (
       <motion.div
@@ -583,6 +597,17 @@ function BrushingPracticeCheck({
       </button>
     </motion.div>
   );
+}
+
+function ColourRecognitionPracticeCheck({ onComplete }: { onComplete: (result: { correct: number; total: number; helpRequests: number }) => void }) {
+  const questions = [
+    { q: "Which colour is RED?", options: ["#E53935", "#1565C0", "#FBC02D"], correct: 0 },
+    { q: "Which colour is BLUE?", options: ["#FBC02D", "#1565C0", "#E53935"], correct: 1 },
+    { q: "Which colour is YELLOW?", options: ["#1565C0", "#E53935", "#FBC02D"], correct: 2 },
+  ];
+  const [q,setQ]=useState(0); const [selected,setSelected]=useState<number|null>(null); const [correct,setCorrect]=useState(0); const [help,setHelp]=useState(0); const current=questions[q];
+  const choose=(i:number)=>{if(selected!==null)return;setSelected(i);const ok=i===current.correct;if(ok){setCorrect(x=>x+1);speak("Correct! Great job!")}else speak("Try again on the next question.");window.setTimeout(()=>{if(q===questions.length-1)onComplete({correct:correct+(ok?1:0),total:questions.length,helpRequests:help});else{setQ(x=>x+1);setSelected(null)}},700)};
+  return <motion.div initial={{opacity:0,y:18}} animate={{opacity:1,y:0}} className="rounded-[32px] p-6 md:p-8" style={{background:"#fff",boxShadow:"0 10px 35px rgba(21,101,192,.09)"}}><span className="inline-block px-3 py-1 rounded-full" style={{background:"#E8F5E9",color:"#2E7D32",fontFamily:P,fontWeight:700,fontSize:11}}>PRACTICE CHECK</span><h2 style={{fontFamily:P,fontSize:23,fontWeight:800,color:"#0D2137",marginTop:10}}>{current.q}</h2><p style={{fontFamily:P,fontSize:12,color:"#607D8B"}}>Look at the colour and choose the matching one.</p><div className="grid grid-cols-3 gap-4 mt-6">{current.options.map((c,i)=><button key={c+i} onClick={()=>choose(i)} disabled={selected!==null} style={{height:150,borderRadius:24,border:`3px solid ${selected!==null&&i===current.correct?"#43A047":selected===i?"#E53935":"#D9E6F2"}`,background:"#fff",cursor:selected===null?"pointer":"default",display:"grid",placeItems:"center"}}><span style={{width:82,height:82,borderRadius:"50%",background:c,boxShadow:"0 8px 20px rgba(13,33,55,.12)"}} /></button>)}</div><button onClick={()=>{setHelp(x=>x+1);speak("Here is a clue. Listen to the colour name again.")}} className="w-full mt-5 py-3 rounded-2xl border-0" style={{background:"#FFF4E5",color:"#E65100",fontFamily:P,fontWeight:700,cursor:"pointer"}}>🫶 I Need Help — Hear a Clue</button></motion.div>;
 }
 
 function ChoiceActivity({

@@ -233,9 +233,12 @@ export function TopBar({
   user?: { name: string; role: string };
 }) {
   const [search, setSearch] = useState("");
+  const [profileOpen, setProfileOpen] = useState(false);
+  const storedUser = (() => { try { return JSON.parse(localStorage.getItem("user") || "null"); } catch { return null; } })();
+  const currentUser = user || storedUser || { name: "User", role: "teacher" };
 
-  const initials = user?.name
-    ? user.name
+  const initials = currentUser?.name
+    ? currentUser.name
         .split(" ")
         .map((n: string) => n[0])
         .join("")
@@ -335,13 +338,12 @@ export function TopBar({
         />
       </button>
 
-      {/* Logged-in User */}
-      <div
+      {/* Logged-in Teacher/Admin Profile */}
+      <div style={{ position: "relative" }}>
+      <button
+        onClick={() => setProfileOpen(v => !v)}
         className="flex items-center gap-2 px-3 py-2 rounded-xl"
-        style={{
-          background: "#F0F6FF",
-          border: "1.5px solid rgba(21,101,192,0.14)",
-        }}
+        style={{ background: "#F0F6FF", border: "1.5px solid rgba(21,101,192,0.14)", cursor: "pointer" }}
       >
         <div
           className="flex items-center justify-center rounded-full"
@@ -366,7 +368,7 @@ export function TopBar({
               color: "#0D2137",
             }}
           >
-            {user?.name || "Teacher"}
+            {currentUser?.name || "User"}
           </div>
 
           <div
@@ -376,7 +378,7 @@ export function TopBar({
               color: "#4A6580",
             }}
           >
-            {user?.role || "teacher"}
+            {currentUser?.role || "teacher"}
           </div>
         </div>
 
@@ -389,6 +391,17 @@ export function TopBar({
         >
           expand_more
         </span>
+      </button>
+      {profileOpen && (
+        <div style={{ position: "absolute", right: 0, top: "calc(100% + 8px)", width: 210, background: "#fff", border: "1px solid rgba(21,101,192,0.12)", borderRadius: 14, boxShadow: "0 12px 30px rgba(13,33,55,.15)", padding: 8, zIndex: 100 }}>
+          <div style={{ padding: "10px 12px", borderBottom: "1px solid #eef3f8" }}>
+            <div style={{ fontFamily: P, fontWeight: 700, fontSize: 13, color: "#0D2137" }}>{currentUser?.name}</div>
+            <div style={{ fontFamily: P, fontSize: 11, color: "#4A6580", textTransform: "capitalize" }}>{currentUser?.role}</div>
+          </div>
+          <button onClick={() => window.location.href = "/settings"} style={{ width: "100%", textAlign: "left", border: 0, background: "transparent", padding: "10px 12px", cursor: "pointer", fontFamily: P, fontSize: 12, color: "#0D2137" }}>⚙️ Profile & Settings</button>
+          <button onClick={() => { localStorage.removeItem("token"); localStorage.removeItem("user"); window.location.href = "/login"; }} style={{ width: "100%", textAlign: "left", border: 0, background: "transparent", padding: "10px 12px", cursor: "pointer", fontFamily: P, fontSize: 12, color: "#d32f2f" }}>↪ Logout</button>
+        </div>
+      )}
       </div>
     </header>
   );

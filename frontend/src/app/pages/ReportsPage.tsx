@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Link } from "react-router";
 import { Sidebar, TopBar } from "./DashboardPage";
+import studentAPI from "../api/studentApi";
+import { getResults, getAllResults } from "../api/resultApi";
 import {
   BarChart,
   Bar,
@@ -23,24 +25,7 @@ type ReportType = "weekly" | "monthly" | "custom";
 type Format = "pdf" | "excel";
 
 // ─── Preview bar data ─────────────────────────────────────────────────────────
-const previewBarData = [
-  { week: "W1", ALPI: 68 },
-  { week: "W2", ALPI: 71 },
-  { week: "W3", ALPI: 73 },
-  { week: "W4", ALPI: 75 },
-  { week: "W5", ALPI: 74 },
-  { week: "W6", ALPI: 78 },
-];
 
-const activityLog = [
-  { date: "24 Jul", activity: "Shape Matching", score: "88%", duration: "12 min", status: "Completed" },
-  { date: "23 Jul", activity: "Colour Match",   score: "76%", duration: "9 min",  status: "Completed" },
-  { date: "22 Jul", activity: "Animal Match",   score: "82%", duration: "10 min", status: "Completed" },
-  { date: "21 Jul", activity: "Alphabet Trace", score: "70%", duration: "8 min",  status: "Partial"   },
-  { date: "20 Jul", activity: "Number Skills",  score: "91%", duration: "11 min", status: "Completed" },
-];
-
-const STUDENTS_LIST = ["All Students", "Aarav", "Priya", "Ravi", "Sneha", "Kiran", "Meena"];
 
 // ─── Report Type Card ─────────────────────────────────────────────────────────
 function ReportTypeCard({
@@ -169,6 +154,30 @@ export default function ReportsPage() {
     teacherNotes: false,
     alpiSummary: true,
   });
+  const [students, setStudents] = useState<any[]>([]);
+  const [reportResults, setReportResults] = useState<any[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
+
+  useEffect(() => {
+    studentAPI.get("/").then(r => setStudents(r.data || [])).catch(() => {}).finally(() => setLoadingData(false));
+  }, []);
+
+  useEffect(() => {
+    if (student === "All Students") {
+      getAllResults().then(r => setReportResults(r.data || [])).catch(() => setReportResults([]));
+    } else {
+      const st = students.find(s => s.name === student);
+      if (st) getResults(st._id).then(r => setReportResults(r.data || [])).catch(() => setReportResults([]));
+      else setReportResults([]);
+    }
+  }, [student, students]);
+
+  const selectedStudent = students.find(s => s.name === student);
+  const reportAccuracy = reportResults.length ? Math.round(reportResults.reduce((a,r)=>a+Number(r.accuracy||0),0)/reportResults.length) : 0;
+  const reportALPI = selectedStudent ? Number(selectedStudent.alpiScore||0) : reportAccuracy;
+  const previewBarData = reportResults.slice().reverse().slice(-8).map((r,i)=>({week:`W${i+1}`,ALPI:Number(r.accuracy||0)}));
+  const activityLog = reportResults.slice(0,8).map(r=>({date:new Date(r.completedAt||r.createdAt).toLocaleDateString("en-IN",{day:"2-digit",month:"short"}),activity:r.activityName,score:`${Number(r.accuracy||0)}%`,duration:`${Math.round(Number(r.timeTaken||0)/60)} min`,status:"Completed"}));
+  const STUDENTS_LIST = ["All Students", ...students.map(s=>s.name)];
 
   const toggleCheck = (k: keyof typeof checks) =>
     setChecks(prev => ({ ...prev, [k]: !prev[k] }));
@@ -539,8 +548,8 @@ export default function ReportsPage() {
                       {selectedType === "custom"
                         ? `${dateFrom} – ${dateTo}`
                         : selectedType === "weekly"
-                        ? "21 Jul – 27 Jul 2025"
-                        : "July 2025"}
+                        ? "Current week"
+                        : "Current month"}
                     </div>
                   </div>
                 </div>
@@ -560,16 +569,16 @@ export default function ReportsPage() {
                   <div>
                     <div style={{ fontSize: 11, color: MUTED, fontWeight: 600 }}>Student</div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: DARK, marginTop: 2 }}>
-                      {student === "All Students" ? "Aarav Kumar" : student}
+                      {student === "All Students" ? "All Students" : student}
                     </div>
                   </div>
                   <div>
                     <div style={{ fontSize: 11, color: MUTED, fontWeight: 600 }}>Level</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: DARK, marginTop: 2 }}>Level 3</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: DARK, marginTop: 2 }}>{selectedStudent?.learningLevel || "—"}</div>
                   </div>
                   <div>
                     <div style={{ fontSize: 11, color: MUTED, fontWeight: 600 }}>Class</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: DARK, marginTop: 2 }}>Sunflower — A</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: DARK, marginTop: 2 }}>{selectedStudent?.studentCode || "All learners"}</div>
                   </div>
                   <div>
                     <div style={{ fontSize: 11, color: MUTED, fontWeight: 600 }}>Report Format</div>
@@ -582,9 +591,9 @@ export default function ReportsPage() {
                 {/* KPI row */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 22 }}>
                   {[
-                    { label: "ALPI Score", value: "76.4", icon: "insights", color: "#7c3aed" },
-                    { label: "Activities", value: "42", icon: "layers", color: PRIMARY },
-                    { label: "Sessions", value: "18", icon: "timer", color: ACCENT },
+                    { label: "ALPI Score", value: String(reportALPI), icon: "insights", color: "#7c3aed" },
+                    { label: "Activities", value: String(reportResults.length), icon: "layers", color: PRIMARY },
+                    { label: "Average Accuracy", value: `${reportAccuracy}%`, icon: "timer", color: ACCENT },
                   ].map(m => (
                     <div
                       key={m.label}

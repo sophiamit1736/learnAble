@@ -23,4 +23,7 @@ export const getResults = (studentId: string) =>
 export const getAdaptiveSummary = (studentId: string) =>
   API.get(`/results/adaptive/${studentId}`);
 
+export const getAnalytics = () => API.get("/results/analytics");
+export const getAllResults = () => API.get("/results/all");
+
 export default API;
