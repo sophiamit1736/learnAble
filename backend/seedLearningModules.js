@@ -5,10 +5,75 @@ const LearningModule = require("./models/LearningModule");
 const modules = [
   // ADL
   {
-    moduleId: "adl-brushing", title: "Brushing Teeth", description: "Learn a simple routine for brushing teeth independently.", category: "ADL", skill: "Personal Hygiene", level: "Beginner", duration: 10,
-    ageGroups: ["Early", "Middle", "Teen"], objectives: ["Recognise a toothbrush", "Follow brushing steps", "Build independent hygiene habits"],
-    steps: ["Take the toothbrush", "Apply toothpaste", "Brush the front teeth", "Brush the back teeth", "Rinse the mouth", "Clean and keep the toothbrush"],
-    adaptations: ["Use picture instructions", "Demonstrate each step", "Allow extra practice time"], icon: "clean_hands", color: "#1565C0"
+    moduleId: "adl-brushing",
+    title: "Brushing Teeth",
+    description: "Learn a simple routine for brushing teeth independently.",
+    category: "ADL",
+    skill: "Personal Hygiene",
+    level: "Beginner",
+    duration: 10,
+    ageGroups: ["Early", "Middle", "Teen"],
+    objectives: [
+      "Recognise a toothbrush",
+      "Follow brushing steps",
+      "Build independent hygiene habits"
+    ],
+    steps: [
+      "Pick up your toothbrush",
+      "Put toothpaste on your toothbrush",
+      "Brush the front teeth in up and down motion",
+      "Brush the back teeth on both sides",
+      "Rinse your mouth with clean water",
+      "Clean your toothbrush and keep it in place"
+    ],
+    interactiveSteps: [
+      {
+        title: "Pick up your toothbrush",
+        instruction: "Pick up your toothbrush.",
+        audioText: "Pick up your toothbrush.",
+        action: "tap"
+      },
+      {
+        title: "Put toothpaste on your toothbrush",
+        instruction: "Put a small amount of toothpaste on your toothbrush.",
+        audioText: "Put a small amount of toothpaste on your toothbrush.",
+        action: "tap"
+      },
+      {
+        title: "Brush the front teeth",
+        instruction: "Brush the front teeth using gentle up and down movements.",
+        audioText: "Brush the front teeth using gentle up and down movements.",
+        action: "tap"
+      },
+      {
+        title: "Brush the back teeth",
+        instruction: "Brush the back teeth on both sides.",
+        audioText: "Brush the back teeth on both sides.",
+        action: "tap"
+      },
+      {
+        title: "Rinse your mouth",
+        instruction: "Rinse your mouth with clean water.",
+        audioText: "Rinse your mouth with clean water.",
+        action: "tap"
+      },
+      {
+        title: "Clean and store your toothbrush",
+        instruction: "Clean your toothbrush and keep it in its place.",
+        audioText: "Clean your toothbrush and keep it in its place.",
+        action: "tap"
+      }
+    ],
+    adaptations: [
+      "Use picture instructions",
+      "Demonstrate each step",
+      "Allow extra practice time",
+      "Use audio prompts when needed"
+    ],
+    activityType: "visual-sequence",
+    audioEnabled: true,
+    icon: "clean_hands",
+    color: "#1565C0"
   },
   {
     moduleId: "adl-combing", title: "Combing Hair", description: "Practice a simple hair-grooming routine.", category: "ADL", skill: "Grooming", level: "Beginner", duration: 10,

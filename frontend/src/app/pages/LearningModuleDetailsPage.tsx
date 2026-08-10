@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Sidebar, TopBar } from "./DashboardPage";
 import { getLearningModule } from "../api/learningModuleApi";
 import type { LearningModule } from "../types/learningModule";
+import ToothBrushingIllustration from "../components/ToothBrushingIllustration";
 
 const P = "Poppins, sans-serif";
 
@@ -349,22 +350,28 @@ function Visual({
     instruction: "Let's learn!",
   };
 
+  const interactiveStep = module.interactiveSteps?.[step];
+
+  if (module.moduleId === "adl-brushing") {
+    return (
+      <motion.div
+        key={`brushing-${step}`}
+        initial={{ opacity: 0, scale: 0.96, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.45 }}
+        className="mx-auto w-full"
+      >
+        <ToothBrushingIllustration step={step} />
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       key={step}
       initial={{ scale: 0.8, opacity: 0 }}
-      animate={{
-        scale: 1,
-        opacity: 1,
-        y: [0, -6, 0],
-      }}
-      transition={{
-        duration: 0.7,
-        y: {
-          duration: 2.2,
-          repeat: Infinity,
-        },
-      }}
+      animate={{ scale: 1, opacity: 1, y: [0, -6, 0] }}
+      transition={{ duration: 0.7, y: { duration: 2.2, repeat: Infinity } }}
       className="mx-auto rounded-[32px] flex items-center justify-center relative overflow-hidden"
       style={{
         width: "min(100%, 360px)",
@@ -375,41 +382,203 @@ function Visual({
     >
       <div
         className="absolute rounded-full"
-        style={{
-          width: 170,
-          height: 170,
-          background: `${visual.accent}12`,
-        }}
+        style={{ width: 170, height: 170, background: `${visual.accent}12` }}
       />
 
-      <motion.div
-        animate={{ rotate: [-4, 4, -4] }}
-        transition={{
-          duration: 1.8,
-          repeat: Infinity,
-        }}
-        style={{
-          fontSize: 105,
-          position: "relative",
-          zIndex: 2,
-          userSelect: "none",
-        }}
-      >
-        {visual.emoji}
-      </motion.div>
+      {interactiveStep?.image ? (
+        <img
+          src={interactiveStep.image}
+          alt={interactiveStep.title || module.title}
+          className="relative z-10 w-full h-full object-contain p-5"
+        />
+      ) : (
+        <motion.div
+          animate={{ rotate: [-4, 4, -4] }}
+          transition={{ duration: 1.8, repeat: Infinity }}
+          style={{ fontSize: 105, position: "relative", zIndex: 2, userSelect: "none" }}
+        >
+          {interactiveStep?.emoji || visual.emoji}
+        </motion.div>
+      )}
 
       <div
-        className="absolute bottom-3 left-3 right-3 rounded-2xl px-4 py-2"
+        className="absolute bottom-3 left-3 right-3 rounded-2xl px-4 py-2 z-20"
         style={{
-          background: "rgba(255,255,255,.88)",
+          background: "rgba(255,255,255,.92)",
           fontFamily: P,
           fontWeight: 600,
           fontSize: 13,
           color: visual.accent,
         }}
       >
-        {visual.instruction}
+        {interactiveStep?.instruction || visual.instruction}
       </div>
+    </motion.div>
+  );
+}
+
+
+const BRUSHING_QUIZ = [
+  {
+    question: "Which picture shows putting toothpaste on the toothbrush?",
+    options: [
+      { label: "Pick up the toothbrush", image: "/learning/brushing/step1.png", correct: false },
+      { label: "Put toothpaste on the toothbrush", image: "/learning/brushing/step2.png", correct: true },
+      { label: "Rinse your mouth", image: "/learning/brushing/step5.png", correct: false },
+    ],
+  },
+  {
+    question: "Which picture shows brushing the front teeth?",
+    options: [
+      { label: "Brush the front teeth", image: "/learning/brushing/step3.png", correct: true },
+      { label: "Put toothpaste on the toothbrush", image: "/learning/brushing/step2.png", correct: false },
+      { label: "Clean and store the toothbrush", image: "/learning/brushing/step6.png", correct: false },
+    ],
+  },
+  {
+    question: "What should you do after brushing your teeth?",
+    options: [
+      { label: "Pick up the toothbrush", image: "/learning/brushing/step1.png", correct: false },
+      { label: "Put toothpaste on the toothbrush", image: "/learning/brushing/step2.png", correct: false },
+      { label: "Rinse your mouth with clean water", image: "/learning/brushing/step5.png", correct: true },
+    ],
+  },
+];
+
+function BrushingPracticeCheck({
+  onComplete,
+}: {
+  onComplete: (result: { correct: number; total: number; helpRequests: number }) => void;
+}) {
+  const [question, setQuestion] = useState(0);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [correct, setCorrect] = useState(0);
+  const [helpRequests, setHelpRequests] = useState(0);
+
+  const current = BRUSHING_QUIZ[question];
+
+  const choose = (index: number) => {
+    if (selected !== null) return;
+    setSelected(index);
+
+    const isCorrect = current.options[index].correct;
+    if (isCorrect) {
+      setCorrect((value) => value + 1);
+      speak("Correct! Great job!");
+    } else {
+      speak("Not quite. Look at the pictures and try the next one.");
+    }
+
+    window.setTimeout(() => {
+      if (question === BRUSHING_QUIZ.length - 1) {
+        onComplete({
+          correct: correct + (isCorrect ? 1 : 0),
+          total: BRUSHING_QUIZ.length,
+          helpRequests,
+        });
+      } else {
+        setQuestion((value) => value + 1);
+        setSelected(null);
+      }
+    }, 900);
+  };
+
+  const askForHelp = () => {
+    setHelpRequests((value) => value + 1);
+    speak("Let's look at the pictures together. Choose the picture that matches the instruction.");
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-[32px] p-6 md:p-8"
+      style={{ background: "#fff", boxShadow: "0 10px 35px rgba(21,101,192,.09)" }}
+    >
+      <div className="flex items-center justify-between gap-4 mb-5">
+        <div>
+          <span
+            className="inline-block px-3 py-1 rounded-full"
+            style={{ background: "#E8F5E9", color: "#2E7D32", fontFamily: P, fontWeight: 700, fontSize: 11 }}
+          >
+            PRACTICE CHECK
+          </span>
+          <h2 style={{ fontFamily: P, fontSize: 23, fontWeight: 800, color: "#0D2137", marginTop: 10 }}>
+            Can you remember the steps? 🧠
+          </h2>
+          <p style={{ fontFamily: P, fontSize: 13, color: "#607D8B", marginTop: 5 }}>
+            Look carefully at each picture and choose the correct one.
+          </p>
+        </div>
+        <div
+          className="px-4 py-3 rounded-2xl text-center"
+          style={{ background: "#F0F6FF", color: "#1565C0", fontFamily: P, fontWeight: 700, minWidth: 90 }}
+        >
+          {question + 1} / {BRUSHING_QUIZ.length}
+        </div>
+      </div>
+
+      <div className="h-2 rounded-full overflow-hidden mb-6" style={{ background: "#E7EEF5" }}>
+        <motion.div
+          animate={{ width: `${((question + 1) / BRUSHING_QUIZ.length) * 100}%` }}
+          className="h-full rounded-full"
+          style={{ background: "linear-gradient(90deg,#42A5F5,#66BB6A)" }}
+        />
+      </div>
+
+      <h3
+        className="text-center mb-6"
+        style={{ fontFamily: P, fontSize: 19, fontWeight: 800, color: "#0D2137", lineHeight: 1.4 }}
+      >
+        {current.question}
+      </h3>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        {current.options.map((option, index) => {
+          const chosen = selected === index;
+          const correctAnswer = selected !== null && option.correct;
+          const wrongChoice = chosen && selected !== null && !option.correct;
+
+          return (
+            <motion.button
+              key={option.label}
+              whileHover={{ y: -4 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => choose(index)}
+              disabled={selected !== null}
+              className="overflow-hidden rounded-3xl text-left p-0"
+              style={{
+                background: correctAnswer ? "#E8F5E9" : wrongChoice ? "#FFEBEE" : "#fff",
+                border: `3px solid ${correctAnswer ? "#43A047" : wrongChoice ? "#E53935" : "#D9E6F2"}`,
+                cursor: selected === null ? "pointer" : "default",
+                opacity: selected !== null && !correctAnswer && !wrongChoice ? 0.72 : 1,
+              }}
+            >
+              <img
+                src={option.image}
+                alt={option.label}
+                className="w-full aspect-[4/3] object-cover"
+                draggable={false}
+              />
+              <div className="p-4">
+                <div style={{ fontFamily: P, fontSize: 13, fontWeight: 700, color: "#263238", lineHeight: 1.4 }}>
+                  {option.label}
+                </div>
+                {correctAnswer && <div className="mt-2" style={{ color: "#2E7D32", fontWeight: 800, fontFamily: P, fontSize: 12 }}>✓ Correct!</div>}
+                {wrongChoice && <div className="mt-2" style={{ color: "#C62828", fontWeight: 800, fontFamily: P, fontSize: 12 }}>Try the next one</div>}
+              </div>
+            </motion.button>
+          );
+        })}
+      </div>
+
+      <button
+        onClick={askForHelp}
+        className="w-full mt-5 py-3 rounded-2xl border-0"
+        style={{ background: "#FFF4E5", color: "#E65100", fontFamily: P, fontWeight: 700, cursor: "pointer" }}
+      >
+        🫶 I Need Help — Show Me Again
+      </button>
     </motion.div>
   );
 }
@@ -426,8 +595,6 @@ function ChoiceActivity({
   const [selected, setSelected] = useState<string | null>(null);
 
   const choices = useMemo(() => {
-    const current = module.steps[step];
-
     return [
       {
         id: "yes",
@@ -577,6 +744,8 @@ export default function LearningModuleDetailsPage() {
   const [completed, setCompleted] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [soundOn, setSoundOn] = useState(true);
+  const [practiceStarted, setPracticeStarted] = useState(false);
+  const [practiceResult, setPracticeResult] = useState<{ correct: number; total: number; helpRequests: number } | null>(null);
 
   useEffect(() => {
     if (!moduleId) return;
@@ -620,11 +789,15 @@ export default function LearningModuleDetailsPage() {
   useEffect(() => {
     if (!module || !started || !soundOn || completed) return;
 
-    speak(module.steps[step]);
+    speak(module.interactiveSteps?.[step]?.audioText || module.interactiveSteps?.[step]?.instruction || module.steps[step]);
   }, [module, step, started, soundOn, completed]);
 
   const progress = module
-    ? Math.round(((step + (completed ? 1 : 0)) / module.steps.length) * 100)
+    ? completed
+      ? 100
+      : practiceStarted
+      ? 92
+      : Math.round((step / module.steps.length) * 85)
     : 0;
 
   const time = `${String(Math.floor(seconds / 60)).padStart(
@@ -635,11 +808,13 @@ export default function LearningModuleDetailsPage() {
   const startActivity = () => {
     setStarted(true);
     setCompleted(false);
+    setPracticeStarted(false);
+    setPracticeResult(null);
     setStep(0);
     setSeconds(0);
 
     if (module && soundOn) {
-      speak(module.steps[0]);
+      speak(module.interactiveSteps?.[0]?.audioText || module.interactiveSteps?.[0]?.instruction || module.steps[0]);
     }
   };
 
@@ -647,12 +822,19 @@ export default function LearningModuleDetailsPage() {
     if (!module) return;
 
     if (step >= module.steps.length - 1) {
-      setCompleted(true);
-      speak("Amazing! You completed the activity!");
+      setPracticeStarted(true);
+      speak("Great work! Now let's check what you remember.");
       return;
     }
 
     setStep((value) => value + 1);
+  };
+
+  const finishPractice = (result: { correct: number; total: number; helpRequests: number }) => {
+    setPracticeResult(result);
+    setPracticeStarted(false);
+    setCompleted(true);
+    speak("Amazing! You completed the brushing teeth lesson!");
   };
 
   if (loading) {
@@ -974,7 +1156,7 @@ export default function LearningModuleDetailsPage() {
                         setSoundOn((value) => !value);
 
                         if (!soundOn && module) {
-                          speak(module.steps[step]);
+                          speak(module.interactiveSteps?.[step]?.audioText || module.interactiveSteps?.[step]?.instruction || module.steps[step]);
                         }
                       }}
                       className="flex items-center justify-center rounded-xl border-0"
@@ -1026,7 +1208,9 @@ export default function LearningModuleDetailsPage() {
                 </div>
               </div>
 
-              {!completed ? (
+              {practiceStarted ? (
+                <BrushingPracticeCheck onComplete={finishPractice} />
+              ) : !completed ? (
                 <motion.div
                   key={step}
                   initial={{
@@ -1069,7 +1253,7 @@ export default function LearningModuleDetailsPage() {
                         color: "#0D2137",
                       }}
                     >
-                      {module.steps[step]}
+                      {module.interactiveSteps?.[step]?.instruction || module.steps[step]}
                     </h2>
 
                     <p
@@ -1152,6 +1336,42 @@ export default function LearningModuleDetailsPage() {
                   >
                     Amazing Work! 🎉
                   </h2>
+
+                  {module.moduleId === "adl-brushing" && practiceResult && (
+                    <div className="mt-6 grid gap-3 md:grid-cols-3">
+                      <div className="rounded-2xl p-4" style={{ background: "#E8F5E9" }}>
+                        <div style={{ fontFamily: P, fontSize: 11, color: "#558B2F", fontWeight: 700 }}>ACCURACY</div>
+                        <div style={{ fontFamily: P, fontSize: 25, color: "#2E7D32", fontWeight: 800, marginTop: 4 }}>
+                          {Math.round((practiceResult.correct / practiceResult.total) * 100)}%
+                        </div>
+                      </div>
+                      <div className="rounded-2xl p-4" style={{ background: "#F0F6FF" }}>
+                        <div style={{ fontFamily: P, fontSize: 11, color: "#607D8B", fontWeight: 700 }}>CORRECT</div>
+                        <div style={{ fontFamily: P, fontSize: 25, color: "#1565C0", fontWeight: 800, marginTop: 4 }}>
+                          {practiceResult.correct} / {practiceResult.total}
+                        </div>
+                      </div>
+                      <div className="rounded-2xl p-4" style={{ background: "#FFF4E5" }}>
+                        <div style={{ fontFamily: P, fontSize: 11, color: "#E65100", fontWeight: 700 }}>HELP REQUESTS</div>
+                        <div style={{ fontFamily: P, fontSize: 25, color: "#E65100", fontWeight: 800, marginTop: 4 }}>
+                          {practiceResult.helpRequests}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {module.moduleId === "adl-brushing" && practiceResult && (
+                    <div className="mt-5 rounded-2xl p-4 text-left" style={{ background: "#F7FAFD", border: "1px solid #E2ECF4" }}>
+                      <div style={{ fontFamily: P, fontSize: 12, color: "#607D8B", fontWeight: 700 }}>ADAPTIVE RECOMMENDATION</div>
+                      <div style={{ fontFamily: P, fontSize: 15, color: "#0D2137", fontWeight: 700, marginTop: 6 }}>
+                        {Math.round((practiceResult.correct / practiceResult.total) * 100) >= 80
+                          ? "Excellent mastery. The learner can progress to the next ADL activity."
+                          : Math.round((practiceResult.correct / practiceResult.total) * 100) >= 50
+                          ? "Developing mastery. Repeat this lesson with the visual prompts before moving to the next activity."
+                          : "Needs additional support. Repeat the pictorial lesson with more guided practice."}
+                      </div>
+                    </div>
+                  )}
 
                   <p
                     className="mt-3"
