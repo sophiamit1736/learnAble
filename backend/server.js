@@ -7,6 +7,7 @@ const authRoutes = require("./routes/authRoutes");
 const connectDB = require("./config/db");
 const studentRoutes = require("./routes/studentRoutes");
 const activityResultRoutes = require("./routes/activityResultRoutes");
+const learningModuleRoutes = require("./routes/learningModuleRoutes");
 const app = express();
 
 connectDB();
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use("/api/auth",authRoutes);
 app.use("/uploads",express.static(path.join(__dirname,"uploads")));
 app.use("/api/results", activityResultRoutes);
+app.use("/api/learning-modules",learningModuleRoutes);
 app.use(express.urlencoded({ extended: true }));
 
 // Make uploaded images accessible

@@ -22,6 +22,8 @@ import PictureIdentificationGame from "./games/PictureIdentificationGame";
 import DragDropGame from "./games/DragandDropGame";
 import MemoryGame from "./games/MemoryGame";
 import LearningScreenPage from "./pages/LearningScreenPage";
+import LearningModulesPage from "./pages/LearningModulesPage";
+import LearningModuleDetailsPage from "./pages/LearningModuleDetailsPage";
 
 const router = createBrowserRouter([
   {
@@ -140,7 +142,22 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-
+  {
+  path: "/learning-modules",
+  element: (
+    <ProtectedRoute>
+      <LearningModulesPage />
+    </ProtectedRoute>
+  ),
+},
+  {
+    path: "/learning-modules/:moduleId",
+    element: (
+      <ProtectedRoute>
+        <LearningModuleDetailsPage />
+      </ProtectedRoute>
+    ),
+  },
   {
     path: "/analytics",
     element: (

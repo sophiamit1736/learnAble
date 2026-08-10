@@ -300,7 +300,66 @@ export default function ActivityLibraryPage() {
     <div className="flex" style={{ minHeight: "100vh", background: "#F0F6FF" }}>
       <Sidebar active="Activities" />
       <div className="flex-1 flex flex-col min-w-0">
-        <TopBar title="Activity Library" subtitle="Browse, assign and launch learning activities" />
+        <TopBar
+            title="Activity Library"
+            subtitle="Browse, assign and launch learning activities"
+          />
+
+          <div
+            className="flex items-center justify-between px-8 pt-5"
+          >
+            <div>
+              <h2
+                style={{
+                  fontFamily: "Poppins, sans-serif",
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: "#0D2137",
+                  margin: 0,
+                }}
+              >
+                Learning & Activities
+              </h2>
+
+              <p
+                style={{
+                  fontFamily: "Poppins, sans-serif",
+                  fontSize: 12,
+                  color: "#4A6580",
+                  marginTop: 4,
+                }}
+              >
+                Explore interactive games and structured learning modules
+              </p>
+            </div>
+
+            <Link
+              to="/learning-modules"
+              style={{
+                background: "#27ae60",
+                color: "#fff",
+                padding: "11px 18px",
+                borderRadius: 12,
+                textDecoration: "none",
+                fontFamily: "Poppins, sans-serif",
+                fontSize: 13,
+                fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                boxShadow: "0 4px 14px rgba(39,174,96,0.25)",
+              }}
+            >
+              <span
+                className="material-icons-round"
+                style={{ fontSize: 17 }}
+              >
+                school
+              </span>
+
+              Learning Modules
+            </Link>
+          </div>        
 
         <main className="flex-1 p-8">
           {/* Search + filters */}
