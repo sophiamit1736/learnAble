@@ -1,5 +1,6 @@
 const ActivityResult = require("../models/ActivityResult");
 const LearningModule = require("../models/LearningModule");
+const Student = require("../models/Student");
 
 // Save a completed learning activity and its performance signals.
 const saveResult = async (req, res) => {
@@ -43,7 +44,26 @@ const saveResult = async (req, res) => {
       helpRequests,
     });
 
-    res.status(201).json(result);
+    // ALPI for the current prototype is a transparent 0-100 mastery index:
+    // average accuracy across all completed activities for this learner.
+    const learnerResults = await ActivityResult.find({ student }).select("accuracy").lean();
+    const alpi = learnerResults.length
+      ? Math.round(
+          learnerResults.reduce((sum, item) => sum + Number(item.accuracy || 0), 0) /
+            learnerResults.length
+        )
+      : 0;
+
+    await Student.findByIdAndUpdate(student, { alpiScore: alpi });
+
+    res.status(201).json({
+      result,
+      alpi,
+      calculation: {
+        formula: "ALPI = average accuracy of all completed learning activities",
+        activitiesIncluded: learnerResults.length,
+      },
+    });
   } catch (err) {
     console.error("saveResult error:", err);
     res.status(500).json({ message: err.message });
@@ -147,9 +167,16 @@ const getAdaptiveSummary = async (req, res) => {
       };
     }
 
+    const alpi = Math.round(overall);
+    await Student.findByIdAndUpdate(studentId, { alpiScore: alpi });
+
     res.json({
-      alpi: Math.round(overall),
+      alpi,
       totalActivities: results.length,
+      calculation: {
+        formula: "ALPI = average accuracy of all completed learning activities",
+        activitiesIncluded: results.length,
+      },
       domainMastery,
       latest,
       recommendation,

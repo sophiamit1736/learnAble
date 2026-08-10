@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { motion } from "motion/react";
 import API from "../api/studentApi";
+import { getAdaptiveSummary, getResults } from "../api/resultApi";
 
 import {
   ResponsiveContainer,
@@ -18,58 +19,6 @@ import {
 import { Sidebar, TopBar } from "./DashboardPage";
 
 const P = "Poppins, sans-serif";
-
-const weeklyProgress = [
-  { week: "W1", alpi: 60 },
-  { week: "W2", alpi: 66 },
-  { week: "W3", alpi: 72 },
-  { week: "W4", alpi: 78 },
-];
-
-const monthlyProgress = [
-  { month: "Mar", alpi: 55 },
-  { month: "Apr", alpi: 60 },
-  { month: "May", alpi: 67 },
-  { month: "Jun", alpi: 74 },
-  { month: "Jul", alpi: 80 },
-];
-
-const activityHistory = [
-  {
-    activity: "Shape Matching",
-    date: "20 Jul 2026",
-    score: "9/10",
-    duration: "12 mins",
-    status: "Completed",
-  },
-  {
-    activity: "Colour Matching",
-    date: "18 Jul 2026",
-    score: "8/10",
-    duration: "10 mins",
-    status: "Completed",
-  },
-  {
-    activity: "Alphabet Match",
-    date: "15 Jul 2026",
-    score: "10/10",
-    duration: "15 mins",
-    status: "Completed",
-  },
-];
-
-const notes = [
-  {
-    author: "Teacher",
-    date: "22 Jul 2026",
-    note: "Student showed good improvement in visual matching.",
-  },
-  {
-    author: "Teacher",
-    date: "18 Jul 2026",
-    note: "Able to complete activities independently.",
-  },
-];
 
 function StatCard({
   label,
@@ -186,6 +135,8 @@ export default function StudentProfilePage() {
   const { id } = useParams();
 
   const [student, setStudent] = useState<any>(null);
+  const [adaptiveSummary, setAdaptiveSummary] = useState<any>(null);
+  const [results, setResults] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(true);
 
@@ -202,6 +153,19 @@ export default function StudentProfilePage() {
       const res = await API.get(`/${id}`);
 
       setStudent(res.data);
+
+      try {
+        const [adaptiveRes, resultsRes] = await Promise.all([
+          getAdaptiveSummary(id as string),
+          getResults(id as string),
+        ]);
+        setAdaptiveSummary(adaptiveRes.data);
+        setResults(resultsRes.data || []);
+      } catch (performanceError) {
+        console.error("Unable to load learner performance:", performanceError);
+        setAdaptiveSummary(null);
+        setResults([]);
+      }
 
     } catch (err) {
 
@@ -235,6 +199,20 @@ export default function StudentProfilePage() {
   const avatarColor = "#1565C0";
 
   const avatarBg = "#E3F2FD";
+
+  const domainProgress = (adaptiveSummary?.domainMastery || []).map((item: any) => ({
+    label: item.domain,
+    alpi: Number(item.mastery || 0),
+  }));
+
+  const recentResults = results.slice(0, 5);
+  const recentProgress = results
+    .slice(0, 7)
+    .reverse()
+    .map((item: any, index: number) => ({
+      label: item.activityName ? item.activityName.slice(0, 12) : `A${index + 1}`,
+      alpi: Number(item.accuracy || 0),
+    }));
 
   return (
     <div className="flex" style={{ minHeight: "100vh", background: "#F0F6FF" }}>
@@ -493,7 +471,7 @@ export default function StudentProfilePage() {
 
           <div className="flex justify-center">
 
-            <ProgressRing value={75} />
+            <ProgressRing value={Number(adaptiveSummary?.alpi ?? student.alpiScore ?? 0)} />
 
           </div>
 
@@ -578,7 +556,7 @@ export default function StudentProfilePage() {
                 border: "1.5px solid rgba(21,101,192,0.08)",
               }}
             >
-              <ProgressRing value={75} />
+              <ProgressRing value={Number(adaptiveSummary?.alpi ?? student.alpiScore ?? 0)} />
               <div
                 style={{
                   fontFamily: P,
@@ -638,13 +616,13 @@ export default function StudentProfilePage() {
                   marginBottom: 20,
                 }}
               >
-                Weekly Progress
+                Domain Mastery
               </h3>
 
               <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={weeklyProgress}>
+                <BarChart data={domainProgress}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="week" />
+                  <XAxis dataKey="label" />
                   <YAxis />
                   <Tooltip />
                   <Bar dataKey="alpi" fill="#1565C0" />
@@ -666,13 +644,13 @@ export default function StudentProfilePage() {
                   marginBottom: 20,
                 }}
               >
-                Monthly Progress
+                Recent Activity Performance
               </h3>
 
               <ResponsiveContainer width="100%" height={220}>
-                <LineChart data={monthlyProgress}>
+                <LineChart data={recentProgress}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
+                  <XAxis dataKey="label" />
                   <YAxis />
                   <Tooltip />
                   <Line
@@ -684,6 +662,13 @@ export default function StudentProfilePage() {
               </ResponsiveContainer>
             </div>
 
+          </div>
+
+          <div className="mt-5 rounded-2xl p-4" style={{ background: "#F7FAFD", border: "1px solid #E2ECF4" }}>
+            <div style={{ fontFamily: P, fontSize: 11, fontWeight: 800, color: "#607D8B" }}>ALPI CALCULATION</div>
+            <div style={{ fontFamily: P, fontSize: 13, color: "#263238", marginTop: 5 }}>
+              ALPI = average accuracy of all completed learning activities. Current activities included: {adaptiveSummary?.totalActivities ?? results.length}.
+            </div>
           </div>
 
           {/* Student Information */}

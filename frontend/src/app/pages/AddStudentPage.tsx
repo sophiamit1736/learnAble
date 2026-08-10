@@ -152,6 +152,7 @@ export default function AddStudentPage() {
       const formData = new FormData();
 
       formData.append("fullName", form.fullName);
+      formData.append("age", String(form.age));
 
       // Backend calculates age from DOB
       const dob = new Date();

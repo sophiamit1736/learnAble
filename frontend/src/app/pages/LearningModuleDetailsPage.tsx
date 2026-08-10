@@ -753,6 +753,7 @@ export default function LearningModuleDetailsPage() {
   const [savingResult, setSavingResult] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [adaptiveSummary, setAdaptiveSummary] = useState<any>(null);
+  const selectedStudentName = students.find((student) => student._id === selectedStudent)?.name || "";
 
   useEffect(() => {
     if (!moduleId) return;
@@ -1204,6 +1205,14 @@ export default function LearningModuleDetailsPage() {
                     "0 4px 20px rgba(21,101,192,.07)",
                 }}
               >
+                <div className="mb-4 rounded-2xl px-4 py-3 flex items-center gap-3" style={{ background: "#EAF4FF", border: "1px solid #CFE3F5" }}>
+                  <span className="material-icons-round" style={{ color: "#1565C0", fontSize: 20 }}>person</span>
+                  <div>
+                    <div style={{ fontFamily: P, fontSize: 10, fontWeight: 800, color: "#607D8B", letterSpacing: 0.6 }}>LEARNING FOR</div>
+                    <div style={{ fontFamily: P, fontSize: 14, fontWeight: 800, color: "#0D2137" }}>{selectedStudentName || "Selected Student"}</div>
+                  </div>
+                </div>
+
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <div
@@ -1311,6 +1320,11 @@ export default function LearningModuleDetailsPage() {
                   }}
                 >
                   <Visual module={module} step={step} />
+
+                  <div className="mt-5 rounded-2xl px-4 py-3 text-center" style={{ background: "#F7FAFD", border: "1px solid #E2ECF4" }}>
+                    <span style={{ fontFamily: P, fontSize: 11, color: "#607D8B", fontWeight: 700 }}>LEARNER: </span>
+                    <span style={{ fontFamily: P, fontSize: 13, color: "#1565C0", fontWeight: 800 }}>{selectedStudentName}</span>
+                  </div>
 
                   <div className="text-center mt-6">
                     <div

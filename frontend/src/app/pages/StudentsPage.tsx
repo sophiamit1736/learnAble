@@ -253,14 +253,14 @@ async function confirmDelete(id:string){
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-4" style={{ fontFamily: P, fontSize: 13, color: "#4A6580" }}>{new Date().getFullYear()-new Date(s.dateOfBirth).getFullYear()} yrs</td>
+                    <td className="px-5 py-4" style={{ fontFamily: P, fontSize: 13, color: "#4A6580" }}>{Number.isFinite(Number(s.age)) && Number(s.age) > 0 ? `${Number(s.age)} yrs` : "—"}</td>
                     <td className="px-5 py-4">
                       <span className="px-3 py-1 rounded-full text-xs font-semibold" style={{ background: levelColor[s.disabilityLevel].bg, color: levelColor[s.disabilityLevel].color, fontFamily: P }}>
                         {s.disabilityLevel}
                       </span>
                     </td>
                     <td className="px-5 py-4" style={{ minWidth: 140 }}>
-                      <AlpiBar value={0} />
+                      <AlpiBar value={Math.max(0, Math.min(100, Number(s.alpiScore) || 0))} />
                     </td>
                     <td className="px-5 py-4" style={{ fontFamily: P, fontWeight: 600, fontSize: 13, color: "#0D2137" }}>{s.facpScore}</td>
                     <td className="px-5 py-4">

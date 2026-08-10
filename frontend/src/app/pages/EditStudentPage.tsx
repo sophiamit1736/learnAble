@@ -157,6 +157,7 @@ export default function EditStudentPage() {
       const formData = new FormData();
 
       formData.append("fullName", form.fullName);
+      formData.append("age", String(form.age));
 
       const dob = new Date();
       dob.setFullYear(

@@ -26,9 +26,13 @@ const createStudent = async (req, res) => {
     const studentCode = `STU-${String(maxNumber + 1).padStart(4, "0")}`;
 
     // Calculate age
-    let age = 0;
+    let age = Number(req.body.age);
 
-    if (req.body.dateOfBirth) {
+    if (!Number.isFinite(age) || age < 1) {
+      age = 0;
+    }
+
+    if (!age && req.body.dateOfBirth) {
       const dob = new Date(req.body.dateOfBirth);
 
       age = new Date().getFullYear() - dob.getFullYear();
@@ -121,9 +125,13 @@ const getStudent = async (req, res) => {
 // ==========================
 const updateStudent = async (req, res) => {
   try {
-    let age = 0;
+    let age = Number(req.body.age);
 
-    if (req.body.dateOfBirth) {
+    if (!Number.isFinite(age) || age < 1) {
+      age = 0;
+    }
+
+    if (!age && req.body.dateOfBirth) {
       const dob = new Date(req.body.dateOfBirth);
 
       age = new Date().getFullYear() - dob.getFullYear();

@@ -46,6 +46,15 @@ const studentSchema = new mongoose.Schema(
       min: 0,
     },
 
+    // Adaptive Learning Performance Index (0-100).
+    // Updated automatically from completed ActivityResult records.
+    alpiScore: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+
     guardianName: {
       type: String,
       required: true,
