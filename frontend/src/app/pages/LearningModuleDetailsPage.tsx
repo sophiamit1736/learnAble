@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import { Sidebar, TopBar } from "./DashboardPage";
 import { getLearningModule } from "../api/learningModuleApi";
+import { getStudents } from "../api/studentApi";
+import { saveResult, getAdaptiveSummary } from "../api/resultApi";
 import type { LearningModule } from "../types/learningModule";
 import ToothBrushingIllustration from "../components/ToothBrushingIllustration";
 
@@ -746,6 +748,11 @@ export default function LearningModuleDetailsPage() {
   const [soundOn, setSoundOn] = useState(true);
   const [practiceStarted, setPracticeStarted] = useState(false);
   const [practiceResult, setPracticeResult] = useState<{ correct: number; total: number; helpRequests: number } | null>(null);
+  const [students, setStudents] = useState<Array<{ _id: string; name: string; studentCode: string }>>([]);
+  const [selectedStudent, setSelectedStudent] = useState("");
+  const [savingResult, setSavingResult] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
+  const [adaptiveSummary, setAdaptiveSummary] = useState<any>(null);
 
   useEffect(() => {
     if (!moduleId) return;
@@ -775,6 +782,18 @@ export default function LearningModuleDetailsPage() {
       mounted = false;
     };
   }, [moduleId]);
+
+  useEffect(() => {
+    getStudents()
+      .then((res) => {
+        const list = Array.isArray(res.data) ? res.data : [];
+        setStudents(list);
+        if (list.length && !selectedStudent) {
+          setSelectedStudent(list[0]._id);
+        }
+      })
+      .catch((err) => console.error("Unable to load students:", err));
+  }, []);
 
   useEffect(() => {
     if (!started || completed) return;
@@ -830,11 +849,50 @@ export default function LearningModuleDetailsPage() {
     setStep((value) => value + 1);
   };
 
-  const finishPractice = (result: { correct: number; total: number; helpRequests: number }) => {
+  const finishPractice = async (result: { correct: number; total: number; helpRequests: number }) => {
     setPracticeResult(result);
     setPracticeStarted(false);
-    setCompleted(true);
-    speak("Amazing! You completed the brushing teeth lesson!");
+    setSavingResult(true);
+    setSaveMessage("");
+
+    const accuracy = Math.round((result.correct / result.total) * 100);
+
+    if (!selectedStudent) {
+      setSaveMessage("Select a student before completing the activity.");
+      setSavingResult(false);
+      setCompleted(true);
+      speak("The lesson is complete. Please select a student to save the result.");
+      return;
+    }
+
+    try {
+      await saveResult({
+        student: selectedStudent,
+        activityName: module?.title || "Brushing Teeth",
+        moduleId: module?.moduleId || "adl-brushing",
+        domain: module?.category || "ADL",
+        level: module?.level || "Beginner",
+        totalQuestions: result.total,
+        correctAnswers: result.correct,
+        wrongAnswers: result.total - result.correct,
+        score: accuracy,
+        accuracy,
+        timeTaken: seconds,
+        attempts: 1,
+        helpRequests: result.helpRequests,
+      });
+
+      const adaptive = await getAdaptiveSummary(selectedStudent);
+      setAdaptiveSummary(adaptive.data);
+      setSaveMessage("Performance saved successfully. Adaptive recommendation updated.");
+    } catch (err) {
+      console.error("Unable to save learning result:", err);
+      setSaveMessage("Lesson completed, but the performance could not be saved. Please check that the backend is running.");
+    } finally {
+      setSavingResult(false);
+      setCompleted(true);
+      speak("Amazing! You completed the brushing teeth lesson!");
+    }
   };
 
   if (loading) {
@@ -1093,15 +1151,39 @@ export default function LearningModuleDetailsPage() {
                   ))}
                 </div>
 
+                <div className="mt-6 rounded-2xl p-4" style={{ background: "#F7FAFD", border: "1px solid #E2ECF4" }}>
+                  <label style={{ display: "block", fontFamily: P, fontSize: 12, fontWeight: 700, color: "#456174", marginBottom: 8 }}>
+                    LEARNING FOR
+                  </label>
+                  <select
+                    value={selectedStudent}
+                    onChange={(e) => setSelectedStudent(e.target.value)}
+                    className="w-full rounded-xl px-3 py-3"
+                    style={{ border: "1px solid #CFE0EE", background: "#fff", color: "#0D2137", fontFamily: P, fontSize: 13, outline: "none" }}
+                  >
+                    <option value="">Select a student</option>
+                    {students.map((student) => (
+                      <option key={student._id} value={student._id}>
+                        {student.name} ({student.studentCode})
+                      </option>
+                    ))}
+                  </select>
+                  <div style={{ marginTop: 7, fontFamily: P, fontSize: 11, color: "#78909C" }}>
+                    The practice result will be added to this learner's adaptive profile.
+                  </div>
+                </div>
+
                 <button
                   onClick={startActivity}
-                  className="w-full mt-7 py-4 rounded-2xl border-0 text-white"
+                  disabled={!selectedStudent}
+                  className="w-full mt-4 py-4 rounded-2xl border-0 text-white"
                   style={{
                     background: module.color,
                     fontFamily: P,
                     fontSize: 15,
                     fontWeight: 700,
-                    cursor: "pointer",
+                    cursor: selectedStudent ? "pointer" : "not-allowed",
+                    opacity: selectedStudent ? 1 : 0.55,
                     boxShadow: `0 8px 20px ${module.color}44`,
                   }}
                 >
@@ -1369,6 +1451,49 @@ export default function LearningModuleDetailsPage() {
                           : Math.round((practiceResult.correct / practiceResult.total) * 100) >= 50
                           ? "Developing mastery. Repeat this lesson with the visual prompts before moving to the next activity."
                           : "Needs additional support. Repeat the pictorial lesson with more guided practice."}
+                      </div>
+                    </div>
+                  )}
+
+                  {savingResult && (
+                    <div className="mt-4 rounded-2xl p-4 text-center" style={{ background: "#F0F6FF", color: "#1565C0", fontFamily: P, fontWeight: 700, fontSize: 13 }}>
+                      Saving performance and updating adaptive profile...
+                    </div>
+                  )}
+
+                  {saveMessage && (
+                    <div className="mt-4 rounded-2xl p-4" style={{ background: saveMessage.startsWith("Performance saved") ? "#E8F5E9" : "#FFF4E5", color: saveMessage.startsWith("Performance saved") ? "#2E7D32" : "#E65100", fontFamily: P, fontWeight: 700, fontSize: 12 }}>
+                      {saveMessage}
+                    </div>
+                  )}
+
+                  {adaptiveSummary && (
+                    <div className="mt-4 rounded-2xl p-5 text-left" style={{ background: "linear-gradient(135deg,#F8FBFF,#F3FAF6)", border: "1px solid #DCEAF4" }}>
+                      <div style={{ fontFamily: P, fontSize: 11, fontWeight: 800, color: "#607D8B", letterSpacing: 0.5 }}>LEARNER ADAPTIVE PROFILE</div>
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-3">
+                        <div>
+                          <div style={{ fontFamily: P, fontSize: 13, fontWeight: 700, color: "#0D2137" }}>ALPI</div>
+                          <div style={{ fontFamily: P, fontSize: 34, fontWeight: 800, color: "#1565C0" }}>{adaptiveSummary.alpi}</div>
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontFamily: P, fontSize: 12, fontWeight: 700, color: "#455A64" }}>Domain mastery</div>
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {(adaptiveSummary.domainMastery || []).map((item: any) => (
+                              <span key={item.domain} className="px-3 py-1 rounded-full" style={{ background: "#E8F5E9", color: "#2E7D32", fontFamily: P, fontSize: 11, fontWeight: 700 }}>
+                                {item.domain}: {item.mastery}%
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-4 p-4 rounded-xl" style={{ background: "#fff" }}>
+                        <div style={{ fontFamily: P, fontSize: 11, fontWeight: 800, color: "#607D8B" }}>NEXT RECOMMENDATION</div>
+                        <div style={{ fontFamily: P, fontSize: 15, fontWeight: 800, color: "#0D2137", marginTop: 5 }}>
+                          {adaptiveSummary.recommendation?.title}
+                        </div>
+                        <div style={{ fontFamily: P, fontSize: 12, color: "#607D8B", marginTop: 4, lineHeight: 1.5 }}>
+                          {adaptiveSummary.recommendation?.reason}
+                        </div>
                       </div>
                     </div>
                   )}

@@ -9,6 +9,7 @@ const {
 const {
   saveResult,
   getStudentResults,
+  getAdaptiveSummary,
 } = require("../controllers/activityResultController");
 
 router.post(
@@ -21,6 +22,12 @@ router.get(
   "/student/:studentId",
   verifyToken,
   getStudentResults
+);
+
+router.get(
+  "/adaptive/:studentId",
+  verifyToken,
+  getAdaptiveSummary
 );
 
 module.exports = router;

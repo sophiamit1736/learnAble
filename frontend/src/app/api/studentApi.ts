@@ -16,3 +16,4 @@ API.interceptors.request.use((config) => {
 });
 
 export default API;
+export const getStudents = () => API.get("/");

@@ -20,4 +20,7 @@ export const saveResult = (data: any) =>
 export const getResults = (studentId: string) =>
   API.get(`/results/student/${studentId}`);
 
+export const getAdaptiveSummary = (studentId: string) =>
+  API.get(`/results/adaptive/${studentId}`);
+
 export default API;

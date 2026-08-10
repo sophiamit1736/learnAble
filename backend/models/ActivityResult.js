@@ -19,6 +19,18 @@ const activityResultSchema = new mongoose.Schema(
       required: true,
     },
 
+    moduleId: {
+      type: String,
+      default: "",
+      index: true,
+    },
+
+    domain: {
+      type: String,
+      default: "General",
+      index: true,
+    },
+
     level: {
       type: String,
       default: "Level 1",
@@ -50,6 +62,16 @@ const activityResultSchema = new mongoose.Schema(
     },
 
     timeTaken: {
+      type: Number,
+      default: 0,
+    },
+
+    attempts: {
+      type: Number,
+      default: 1,
+    },
+
+    helpRequests: {
       type: Number,
       default: 0,
     },
